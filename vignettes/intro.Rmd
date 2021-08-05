@@ -1,0 +1,57 @@
+---
+title: "coffee"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{coffee}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+Chronological Ordering for Fossils and Environmental Events can be acronymised to *coffee*. While individual calibrated radiocarbon dates can span several centuries, combining multiple dates together with any chronological constraints can make a chronology much more robust and precise.
+
+This package uses Bayesian methods to enforce the chronological ordering of radiocarbon and other dates, for example for trees with multiple radiocarbon dates spaced at exactly known intervals (e.g., 10 annual rings). Another example is sites where the relative chronological position of the dates is taken into account - the ages of dates further down a site must be older than those of dates further up.
+
+On first usage of the package, it has to be installed: 
+
+```{r, eval=FALSE}
+install.packages('coffee')
+``` 
+
+To load the code:
+
+```{r}
+library(coffee)
+```
+
+Now you can simulate the radiocarbon dating of a tree, with dates at regularly spaced intervals, and then wiggle-match it using a Bayesian framework (Christen and Litton 1995[^1]):
+
+```{r, eval=FALSE, fig.width=4, fig.asp=1.3}
+sim.rings()
+rings()
+```
+
+The plot contains two panels: the top one shows the calibrated (blue) and wiggle-matched (grey) distributions of all radiocarbon dates, and the bottom one shows how the uncalibrated radiocarbon dates (steelblue dots with error bars) match the calibration curve (green), as well as the modelled age distribution of the ring of interest (by default the youngest one, ring 0).
+
+For more information on the options etc., ask for help:
+
+```{r, eval=FALSE}
+?rings
+```
+
+You can also model a stratigraphy, assuming chronological ordering of the dates according to their relative position (also within a Bayesian framework; Buck et al. 1991):
+
+
+```{r, eval=FALSE}
+sim.strat()
+strat()
+```
+
+**We need to add a graph!**
+
+The plan is to add more types of models in the future, for example ones where the gaps between dates come with uncertainties.
+
+***
+
+[^1]: Christen JA, Litton CD, 1995. A Bayesian approach to wiggle-matching. Journal of Archaeological Science 22, 719-725
+
+[^2]: Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity 65, 808-821.

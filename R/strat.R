@@ -1,0 +1,241 @@
+
+
+
+#' @name strat
+#' @title Model chronologically ordered dates
+#' @description Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to are in chronological order.
+#' @details The calculations are made in a Bayesian framework. For each iteration, it is checked that all modelled age estimates are in chronological order - if not, the iteration is not accepted. See also Buck et al. 1991. Other software that enables Bayesian chronological ordering includes Bcal (Buck et al. 1999) and OxCal (Sequence model; Bronk Ramsey 1995).
+#' @description Model the radiocarbon or cal BP ages of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to be in chronological order.
+#' @details Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The amount of scatter, the laboratory error and an offset can also be modelled.
+#' The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010). In this process, initial ball-park point estimates for the ages of each dated depth are given, and then modified through many iterations. For each iteration, a random dated depth is chosen and its age changed by just a little nudge, a check is performed to ensure that all age estimates remain in chronological order, and the 'energy' or likelihood of the age estimates is calculated (iterations where all ages fit well within the calibrated distributions receive a higher energy; see \code{l.calib}). 
+#' Then this iteration with the updated group of age estimates is either accepted or rejected. The acceptance probability depends on the iteration's energy; if its energy is higher than that of the previous iteration it is accepted, but if it is lower, it is accepted with a probability proportional to its relative energy. Therefore, over many iterations the process will 'learn' from the data and find high-energy combinations of parameter values that fit with the prior constraints that the ages should be ordered chronologically.
+#' Because the iterations are based on a process of modifying values of one parameter each iteration, and because some iterations will not be accepted, the MCMC output will often have a large degree of dependence between neighbouring iterations. Therefore, some thinning will have to be done, by storing only one every few iterations (default 20). Also, since the initial ball-park estimates could be quite wrong, the first 100 or so iterations should also be discarded (burnin). 
+#' It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
+#' @return a variable 'info' which contains the dating and modelling information to produce a plot. Also calls the function \code{draw.strat} to produce a plot of the results.
+#' @param name Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.
+#' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{treedir="strats"}.
+#' @param its Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}.
+#' @param burnin Amount of iterations to remove at the start of the run. Defaults to \code{100}.
+#' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations.
+#' @param showrun Whether or not to show how the MCMC process is progressing during the run. Defaults to \code{FALSE}.
+#' @param sep Separator for the fields in the .csv file. Defaults to a comma.
+#' @param normal Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009)
+#' @param t.a First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).
+#' @param t.b Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution 
+#' @param cc Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).
+#' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
+#' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.
+#' @param ask Whether or not to ask if a folder should be made (if required).
+#' @param ... Options for the plot. See \code{plot.strat}.
+#' @references
+#' Bronk Ramsey C, 1995. Radiocarbon calibration and analysis of stratigraphy: The OxCal program. Radiocarbon 37, 425 – 430.
+#'
+#' Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity 65, 808-821.
+#'
+#' Buck et al. 1999. BCal:  an on-line Bayesian radiocarbon calibration tool. Internet Archaeology 7. 
+#'
+#' Christen JA, Fox C 2010. A General Purpose Sampling Algorithm for Continuous Distributions (the t-walk). Bayesian Analysis 5, 263-282. 
+#' @export
+strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=50, showrun=FALSE, sep=",", normal=TRUE, t.a=3, t.b=4, cc=1, postbomb=FALSE, BCAD=FALSE, ask=TRUE, ...) {
+  stratdir <- assign_dir(strat.dir, name, ask)
+  dat <- read.table(file.path(strat.dir, name, paste0(name, ".csv")), header=TRUE, sep=sep)
+
+  # file sanity checks
+  OK <- TRUE
+  if(ncol(dat) > 5 || ncol(dat) < 4) OK <- FALSE # only 4 or 5 columns
+  if(min(diff(dat[,4])) < 0) OK <- FALSE # we need increasing stratigraphical positions - larger numbers are further down
+  if(min(dat[,5]) < 0 || max(dat[,5]) > 4) OK <- FALSE # can use C14 or cal BP dates
+  if(!OK)
+    stop("Unexpected values in strat file. Please check", call.=FALSE)
+
+  # find initial age estimates to seed the MCMC. Assuming NH ccurve but shouldn't matter because these are initial points only
+  calcurve <- ccurve(cc, postbomb)
+  min.y <- which(dat[,2] == min(dat[,2]))[1]
+  max.y <- which(dat[,2] == max(dat[,2]))[1]
+  if(dat[min.y,5] == 0)
+    min.y <- dat[min.y,2] else 
+      min.y <- calcurve[max(1,which(calcurve[,2] <= dat[min.y,2])),1]
+  if(dat[max.y,5] == 0)
+    max.y <- dat[max.y,2] else
+      max.y <- calcurve[min(nrow(calcurve), which(calcurve[,2] >= dat[max.y,2])),1]
+  init.ages <- sort(runif(nrow(dat), min.y, max.y))
+  x0 <- sort(jitter(init.ages)) # initial ball-park age estimates
+  xp0 <- sort(jitter(init.ages))  # twalk needs two sets of estimates
+
+  # load any calibration curve(s) we'll need
+  ccs <- unique(dat[,5])
+  cc.1 <- c(); cc.2 <- c(); cc.3 <- c(); cc.4 <-c()
+  if(min(dat[which(dat[,5] > 0), 2]) < 0) { # has postbomb dates, which are terrestrial only
+    if(1 %in% ccs) # NH
+      cc.1 <- IntCal::glue.ccurves(1, postbomb)
+    if(3 %in% ccs) # SH
+      cc.3 <- IntCal::glue.ccurves(3, postbomb)
+  } else {
+      if(1 %in% ccs) # NH
+        cc.1 <- IntCal::ccurve(1, FALSE)
+      if(3 %in% ccs) # SH
+        cc.3 <- IntCal::ccurve(3, FALSE)
+    }
+  if(2 %in% ccs)
+    cc.2 <- IntCal::ccurve(2, FALSE)
+  
+  # find the calibrated likelihoods
+  calib <- function(y, er, cc.y, cc.er, normal, ta, tb)
+    if(normal)
+      dnorm(y, cc.y, sqrt(er^2 + cc.er^2)) else
+        (tb + ((y-cc.y)^2) / (2*(sqrt(cc.er^2 + er^2)^2))) ^ (-1*(ta+0.5))
+
+  # (re)define the functions relevant for Runtwalk inline
+  energy <- function(x, dets=dat, curves=ccs, cc1=cc.1, cc2=cc.2, cc3=cc.3, cc4=ccurve(4), Normal=normal, ta=t.a, tb=t.b) {
+    # to deal with prior problem reported by Steier & Rom 2000 and Nicholls & Jones 2001. OK?
+    span <- log(1/((max(x) - min(x))^(length(x)-2)))
+
+    if(0 %in% curves) {
+      dat <- dets[which(dets[,5] == 0),]
+      x0 <- log(calib(dat[,2], dat[,3], x, 0, Normal, ta, tb))
+    } else x0 <- 0
+
+    cc.energy <- function(i, cc, x)
+      if(i %in% curves) {
+        these <- which(dets[,5] == i)
+        cc.y <- approx(cc[,1], cc[,2], x[these])$y
+        cc.er <- approx(cc[,1], cc[,3], x[these])$y
+        return(log(calib(dets[these,2], dets[these,3], cc.y, cc.er, Normal, ta, tb)))
+      } else
+          return(0)
+
+    x1 <- cc.energy(1, cc1, x)
+    x2 <- cc.energy(2, cc2, x)
+    x3 <- cc.energy(3, cc3, x)
+    x4 <- cc.energy(4, cc4, x)
+
+    return(-1 * sum(span, x0, x1, x2, x3, x4))
+  }
+
+  support <- function(ages)
+    if(min(diff(ages)) > 0)
+      return(TRUE) else
+        return(FALSE)
+
+  info <- Runtwalk(Tr=its, Obj=energy, Supp=support, x0=x0, xp0=xp0, PlotLogPost=ifelse(showrun, TRUE, FALSE) )
+
+  message("\nthinned the MCMC by storing every ", thinning, " iterations,")
+  thinning <- seq(1, its, by=thinning)
+  info$output <- info$output[thinning,]
+  info$Us <- info$Us[thinning]
+  if(burnin > 0) {
+    info$output <- info$output[-(1:burnin),]
+    info$Us <- info$Us[-(1:burnin)]
+  }
+  message("removed a burn-in of ", burnin, "; ", length(info$Us), " iterations remaining")
+
+  info$dets <- dat
+  assign_to_global("info", info)
+  draw.strat(info, BCAD=BCAD, ...)
+}
+
+
+#' @name draw.strat
+#' @title plot the dates and model of chronologically ordered dated depths 
+#' @description A plot with two panels. The top panel shows the MCMC output. The bottom panel shows the individually calibrated dates (in downward light gray) as well as the modelled ages constrained by chronological ordering (upward dark-grey) and lines with the hpd ranges (black).
+#' @param set This option reads the 'info' variable, which contains the data and the model output. 
+#' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{start.dir="strats"}.
+
+
+#' @param sep Separator for the fields in the .csv file. Defaults to a comma.
+#' @param normal Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009)
+#' @param dat If \code{plot.rings} is called from within \code{rings()}, both dat and out are provided. If an existing run has to be plotted again, dat and out are read from the files in the folder named \code{name}.
+#' @param out If \code{plot.rings} is called from within \code{rings()}, both dat and out are provided. If an existing run has to be plotted again, dat and out are read from the files in the folder named \code{name}.
+#' @param cc Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).
+#' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
+#' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.
+#' @param t.a First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).
+#' @param t.b Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution approximate the normal distribution more).
+#' @param x.lim Limits of the x-axes. Calculated automatically by default.
+#' @param x1.axis Whether or not to plot the upper x-axis (slightly redundant since the bottom axis shows the values already). Defaults to TRUE.
+#' @param x1.labels Whether or not to plot the labels of the upper x-axis. (slightly redundant since the bottom axis shows the values already). Defaults to FALSE.
+#' @param x1.lab The labels for the calendar axis of the upper panel. Defaults to empty.
+#' @param rev.x Whether or not to reverse the x-axis. Defaults to \code{FALSE}.
+#' @param y1.lab The labels for the y-axis. Defaults to \code{"rings"}.
+#' @param x2.lab The labels for the bottom calendar axis (default \code{age.lab="cal BP"} or \code{"BC/AD"} if \code{BCAD=TRUE}).
+#' @param y2.lab The labels for the bottom y-axis. Defaults to 14C BP with superscript 14, so \code{expression(""^14*C~BP)}.
+#' @param ex Exaggaration of the heights of the calibrated distributions. Defaults to 0.2 so there is plenty space to plot many distributions.
+#' @param plot.cc Whether or not to plot a panel with the calibration curve.
+#' @param plot.dists Whether or not to plot a panel with the distributions.
+#' @param mgp Axis text margins (where should titles, labels and tick marks be plotted). Defaults to \code{mgp=c(1.7, .7, .0)}.
+#' @param dist.res Resolution of the plot of the distribution. The default is \code{500}, which results in smooth plots.
+#' @param date.col Colour of the uncalibrated dates when plotted on top of the calibration curve. Defaults to \code{"steelblue"}.
+#' @param cc.col Colour of the calibration curve. Defaults to semi-transparent darkgreen, \code{cc.col=rgb(0 0.5, 0, 0.5)}.
+#' @param dist.col Colour of the age-modelled distribution. Defaults to semi-transparent grey, \code{dist.col=rgb(0,0,0,0.5)}.
+#' @param calib.col Colour of the calibrated distributions. Defaults to semi-transparent blue, \code{dist.col=rgb(0,0,1,0.5)}.
+
+
+#' @param
+#' @param
+#' @param
+#' @param
+#' @param
+#' @param
+#' @param
+#' @param
+#' @param
+#' @param modelled.border Colour of the border of the modelled ages. Defaults to semi-transparent grey, \code{rgb(0,0,0,0.5}.
+#' @param range.col Colour of the hpd ranges. Defaults to \code{"black"}.
+#' @param simulation Whether or not the data are part of a simulated stratigraphy.
+#' @param simulation.col If the data are part of a simulated stratigraphy, the 'true' ages can also be plotted.
+#' @param mgp Axis text margins (where should titles, labels and tick marks be plotted). Defaults to \code{mgp=c(1.7, .7, .0)}.
+#' @param mar.top Margins around the top panel. Defaults to \code{mar.top=c(3,3,1,1)}.
+#' @param mar.bottom Margins around the bottom panel. Defaults to \code{mar.bottom=c(3,3,0.5,1)}.
+#' @param heights Relative heights of the two panels in the plot. Defaults to 0.3 for the top and 0.7 for the bottom panel.
+
+#' @return A plot with two panels showing the MCMC run and the calibrated and modelled ages.
+#' @examples
+#'   strat.dir <- tempdir()
+#'   strat("mystrat", strat.dir=strat.dir, plot=FALSE)
+#'   draw.strat("mystrat", tree.dir=strat.dir)
+#' @author Maarten Blaauw, J. Andres Christen
+#' @export
+draw.strat <- function(set=get('info'), strat.dir="strats", raw.ex=.5, raw.mirror=FALSE, raw.up=TRUE, modelled.ex=0.5, modelled.mirror=FALSE, modelled.up=FALSE,  BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", raw.col=rgb(0, 0, 0, 0.2), raw.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", simulation=FALSE, simulation.col=grey(0.5), mgp=c(2, .7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,.5,1), heights=c(0.3, 0.7)) {
+  layout(matrix(1:2, ncol=1), heights=heights)
+  op <- par(mar=mar.top, mgp=mgp)
+  energy <- set$Us
+  ages <- set$output
+  dets <- set$dets
+  if(length(xtop.lab) == 0)
+    xtop.lab <- "iterations"
+  if(length(ytop.lab) == 0)
+    ytop.lab <- "energy"
+  plot(-1*energy, type="l", xlab=xtop.lab, ylab=ytop.lab)
+
+  op <- par(mar=mar.bottom)
+  draw.dates(dets[,2], dets[,3], dets[,4], dets[,5], ex=raw.ex, mirror=raw.mirror, up=raw.up, col=raw.col, border=raw.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=TRUE, cal.lab=xbottom.lab, y.lab=ybottom.lab)
+
+  maxdens <- 0
+  for(i in 1:ncol(ages))
+    maxdens <- max(maxdens, density(ages[,i])$y)
+
+  if(BCAD)
+    ages <- 1950 - ages
+
+  hpds <- list()
+  for(i in 1:ncol(ages)) {
+    age <- density(ages[,i])
+    age$y <- age$y / maxdens
+    hpds[[i]] <- IntCal::hpd(cbind(age$x, age$y))
+
+    if(modelled.mirror)
+      pol <- cbind(c(age$x, rev(age$x)), dets[i,4]-modelled.ex*c(age$y, -rev(age$y))) else
+        if(modelled.up)
+          pol <- cbind(c(min(age$x), age$x, max(age$x)), dets[i,4]+modelled.ex*c(0, age$y, 0)) else
+            pol <- cbind(c(min(age$x), age$x, max(age$x)), dets[i,4]-modelled.ex*c(0, age$y, 0))
+    polygon(pol, col=modelled.col, border=modelled.border)
+    if(simulation)
+      segments(ifelse(BCAD, 1950-dets[i,1], dets[i,1]), i, ifelse(BCAD, 1950-dets[i,1], dets[i,1]), ncol(ages)+10, lty=2, col=simulation.col) # then don't be afraid to show the truth!
+    if(!is.na(range.col))
+      segments(hpds[[i]][,1], i, hpds[[i]][,2], i, col=range.col, lwd=2)
+  }
+   info$hpds <- hpds
+   assign_to_global("info", info)
+}
+
+
