@@ -24,8 +24,6 @@ library(IntCal)
 # position: 0, 1, 2, etc. for ordered dates. If some are within a Phase but unordered within the phase, they carry all the same number, e.g., 2, 2, 2. If they are ordered within a phase, perhaps do 2.0, 2.1, 2.2, etc.
 # model: could be date, after, before, exponential, uniform, normal, (all requiring 1 or 2 parameters; date & error)
 
-# ensure that existing runs can be reloaded (can this be done though?)
-
 # no need for 'after' or 'before', because this can already be inferred from the position column? Add an entry with no information other than the order? For non-dated levels...
 
 # strat has a modified prior to solve the problem mentioned by Steier and Rom 2000 (https://doi.org/10.1017/S0033822200058999), as well as Nicholls & Jones 2001. Is this OK? Check with Andres
@@ -38,11 +36,9 @@ library(IntCal)
 
 # also provide 95% ranges (or hpds?) hpds sometimes are >100%???
 
-# sim.strat(); strat()
-
-# sim.tree(); tree()
-
 # an animation of strat would be fun, with 0 burnin and a short run. Draw coloured dots of the simulated ages and how they move through the iterations. Leave shadows of previous dots?
+
+# References
 
 #' Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity 65, 808-821.
 
@@ -69,7 +65,7 @@ assign_dir <- function(mydir, name, folder="trees", option="treedir", ask=TRUE) 
     if(dir.exists(folder))
       mydir <- folder else {
           mydir <- folder
-          ans <- readline(paste0("I will create a folder called ", mydir, ", is that OK? (y/n)  "))
+          ans <- readline(paste0("I will create a folder called ", mydir, "and place output files there, is that OK? (y/n)  "))
           if(ask)
             if(tolower(substr(ans,1,1)) == "y")
               wdir <- dir.create(mydir, FALSE) else

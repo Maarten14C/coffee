@@ -21,10 +21,10 @@
 #' @param treedir The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param normal Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009)
-#' @param t.a First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).
-#' @param t.b Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution approximate the normal distribution more).
 #' @param delta.R The ages can be modelled to have an offset. The mean is 0 by default.
 #' @param delta.STD The error of the offset. Set to 0 by default.
+#' @param t.a First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).
+#' @param t.b Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution approximate the normal distribution more).
 #' @param ask Whether or not to ask if new folders should be written (if required)
 #' @param age.steps Steps in years for the calculations. Defaults to 1, every year.
 #' @param cutoff Value below which probabilities are no longer taken into account. Defaults to 0.000001.
@@ -35,8 +35,8 @@
 #' @param plot Whether or not to draw a plot (by calling the function \code{plot.rings()}.
 #' @param ... Options for the plot. See \code{plot.rings}.
 #' @examples
-#'   rings("Ulandryk4", treedir=tempdir())
-#'   rings("mytree", treedir=tempdir())
+#'   rings("Ulandryk4", tree.dir=tempdir())
+#'   rings("mytree", tree.dir=tempdir())
 #' @author Maarten Blaauw, J. Andres Christen
 #' @references
 #' Bronk Ramsey C, van der Plicht J, Weninger B, 2001. 'Wiggle matching' radiocarbon dates. Radiocarbon 43, 381–389.
@@ -47,7 +47,7 @@
 #'
 #' Christen JA, Perez S, 2009. A new robust statistical model for radiocarbon data. Radiocarbon 51, 1047-1059
 #' @export
-rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE, t.a=3, t.b=4, delta.R=0, delta.STD=0, ask=TRUE, age.steps=1, cutoff=1e-6, cc=1, postbomb=FALSE, BCAD=FALSE, times=3, plot=TRUE, ...) {
+rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, ask=TRUE, age.steps=1, cutoff=1e-6, cc=1, postbomb=FALSE, BCAD=FALSE, times=3, plot=TRUE, ...) {
 
   # If treedir is left empty, check for a folder named trees in the current working directory. Ask permission to make this folder if it doesn't exist yet. Read the file.
   # Check if we have write access. If not, tell the user to provide a different, writeable location for treedir.

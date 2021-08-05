@@ -51,7 +51,7 @@ sim.strat(
 A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, their relative positions (starting with the youngest one at top, and counting upward going down the sequence), and the calibration curve to be used.
 }
 \description{
-Simulate the radiocarbon dating (or with dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to are in chronological order.
+Simulate the radiocarbon dating (or with dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to be in chronological order.
 }
 \details{
 Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The modelling is performed in a Bayesian framework (see \code{strat}). The amount of scatter, the laboratory error and an offset can also be modelled.

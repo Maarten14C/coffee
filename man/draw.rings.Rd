@@ -40,7 +40,7 @@ draw.rings(
 )
 }
 \arguments{
-\item{name}{The name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{treedir} folder. Default names include Ulandryk4 and mytree.}
+\item{name}{The name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{tree.dir} folder. Default names include Ulandryk4 and mytree.}
 
 \item{tree.dir}{The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.}
 

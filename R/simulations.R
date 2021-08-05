@@ -80,14 +80,14 @@ sim.strat <- function(name="mystrat", age.min=4321, length=800, n=5, offset=0, s
   truth <- cumsum(runif(n)) # randomly increasing
   truth <- round(age.min + length * (truth/max(truth)), digits=rounded)
 
-  cc <- ccurve(cc, postbomb)
-  if(age.min < 0)
-    if(postbomb)
-      cc <- glue.ccurves(cc,postbomb) else
-        stop("for years younger than 0 cal BP (after AD 1950), a postbomb curve has to be defined (e.g., 1, 2, 3, 4 or 5", .call=FALSE)
+  if(age.min > 0)
+    ccc <- ccurve(cc, postbomb) else
+      if(postbomb)
+        ccc <- glue.ccurves(cc,postbomb) else
+          stop("for years younger than 0 cal BP (after AD 1950), a postbomb curve has to be defined (e.g., 1, 2, 3, 4 or 5", .call=FALSE)
 
   # simulate the dating
-  strat <- cbind(truth, approx(cc[,1], cc[,2], truth)$y)
+  strat <- cbind(truth, approx(ccc[,1], ccc[,2], truth)$y)
   strat[,2] <- round(strat[,2] + rnorm(nrow(strat), 0, scatter*strat[,2]))
   errors <- round(error * strat[,2])
   errors[errors<min.error] <- min.error

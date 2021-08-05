@@ -10,10 +10,10 @@ rings(
   tree.dir = "trees",
   sep = ",",
   normal = FALSE,
-  t.a = 3,
-  t.b = 4,
   delta.R = 0,
   delta.STD = 0,
+  t.a = 3,
+  t.b = 4,
   ask = TRUE,
   age.steps = 1,
   cutoff = 1e-06,
@@ -34,13 +34,13 @@ rings(
 
 \item{normal}{Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009)}
 
-\item{t.a}{First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).}
-
-\item{t.b}{Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution approximate the normal distribution more).}
-
 \item{delta.R}{The ages can be modelled to have an offset. The mean is 0 by default.}
 
 \item{delta.STD}{The error of the offset. Set to 0 by default.}
+
+\item{t.a}{First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).}
+
+\item{t.b}{Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution approximate the normal distribution more).}
 
 \item{ask}{Whether or not to ask if new folders should be written (if required)}
 
@@ -81,8 +81,8 @@ Default tree files include Ulandryk4 (Christen 2003) and a simulated tree (see \
 By default, the data are calibrated assuming a student-t distribution, which has wider tails than the normal distribution and deals well with outliers ().
 }
 \examples{
-  rings("Ulandryk4", treedir=tempdir())
-  rings("mytree", treedir=tempdir())
+  rings("Ulandryk4", tree.dir=tempdir())
+  rings("mytree", tree.dir=tempdir())
 }
 \references{
 Bronk Ramsey C, van der Plicht J, Weninger B, 2001. 'Wiggle matching' radiocarbon dates. Radiocarbon 43, 381–389.
