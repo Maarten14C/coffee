@@ -62,7 +62,6 @@ The burnin in the above example took around 500 to 1000 iterations, and also cle
 
 The plan is to add more types of models in the future, for example ones where the gaps between dates come with uncertainties.
 
-***
 
 [^1]: Christen JA, Litton CD, 1995. A Bayesian approach to wiggle-matching. Journal of Archaeological Science 22, 719-725
 
