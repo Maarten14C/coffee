@@ -14,3 +14,14 @@ Please check out the vignettes folder for a tutorial. In short, install the pack
 install.packages("coffee")
 ```
 
+```{r}
+library(coffee)
+```
+
+```{r}
+rings()
+```
+
+```{r, eval=FALSE}
+strat()
+```
