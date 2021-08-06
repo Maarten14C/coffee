@@ -23,10 +23,10 @@ To load the code:
 library(coffee)
 ```
 
-Now you can simulate the radiocarbon dating of a tree, with dates at regularly spaced intervals, and then wiggle-match it using a Bayesian framework (Christen and Litton 1995[^1]):
+Now you can simulate the radiocarbon dating of a tree with 400 rings, which was felled in AD 1750 (200 cal BP), with dates at regularly spaced 20-yr intervals, and then wiggle-match it using a Bayesian framework (Christen and Litton 1995[^1]):
 
 ```{r, fig.width=4, fig.asp=1.3}
-sim.rings()
+sim.rings(age.min=200, length=400, gaps=20)
 rings()
 ```
 
