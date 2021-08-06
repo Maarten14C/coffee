@@ -6,8 +6,9 @@
 \usage{
 draw.strat(
   name = "mystrat",
-  set = c(),
+  set = get("info"),
   strat.dir = "strats",
+  sep = ",",
   calibrated.ex = 0.5,
   calibrated.mirror = FALSE,
   calibrated.up = TRUE,
@@ -34,9 +35,13 @@ draw.strat(
 )
 }
 \arguments{
+\item{name}{Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.}
+
 \item{set}{This option reads the 'info' variable, which contains the data and the model output.}
 
 \item{strat.dir}{The directory where the folders of the individual stratigraphies live. Defaults to \code{start.dir="strats"}.}
+
+\item{sep}{Separator for the fields in the .csv file. Defaults to a comma.}
 
 \item{calibrated.ex}{Exaggaration of the heights of the calibrated distributions. Defaults to 0.5. Note that more precise dates peak higher than dates with lower precision.}
 
@@ -89,11 +94,6 @@ A plot with two panels showing the MCMC run and the calibrated and modelled ages
 }
 \description{
 A plot with two panels. The top panel shows the MCMC output. The bottom panel shows the individually calibrated dates (in downward light gray) as well as the modelled ages constrained by chronological ordering (upward dark-grey) and lines with the hpd ranges (black).
-}
-\examples{
-  strat.dir <- tempdir()
-  strat("mystrat", strat.dir=strat.dir, plot=FALSE)
-  draw.strat("mystrat", tree.dir=strat.dir)
 }
 \author{
 Maarten Blaauw, J. Andres Christen

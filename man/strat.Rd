@@ -22,6 +22,8 @@ strat(
   postbomb = FALSE,
   BCAD = FALSE,
   ask = TRUE,
+  talk = TRUE,
+  draw = TRUE,
   ...
 )
 }
@@ -60,6 +62,10 @@ strat(
 
 \item{ask}{Whether or not to ask if a folder should be made (if required).}
 
+\item{talk}{Whether or not to provide feedback on folders written into.}
+
+\item{draw}{Whether or not to draw plots.}
+
 \item{...}{Options for the plot. See \code{plot.strat}.}
 }
 \value{
@@ -80,14 +86,17 @@ Because the iterations are based on a process of modifying values of one paramet
 It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
 }
 \examples{
-  strat("mystrat", strat.dir=tempdir())
+\dontrun{
+tmp <- tempdir()
+strat(, strat.dir=tmp)
+}
 }
 \references{
 Bronk Ramsey C, 1995. Radiocarbon calibration and analysis of stratigraphy: The OxCal program. Radiocarbon 37, 425 – 430.
 
 Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity 65, 808-821.
 
-Buck et al. 1999. BCal:  an on-line Bayesian radiocarbon calibration tool. Internet Archaeology 7. 
+Buck et al. 1999. BCal: an on-line Bayesian radiocarbon calibration tool. Internet Archaeology 7. 
 
-Christen JA, Fox C 2010. A General Purpose Sampling Algorithm for Continuous Distributions (the t-walk). Bayesian Analysis 5, 263-282.
+Christen JA, Fox C 2010. A general purpose sampling algorithm for continuous distributions (the t-walk). Bayesian Analysis 5, 263-282.
 }

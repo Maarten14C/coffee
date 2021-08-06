@@ -1,23 +1,19 @@
 # definitions of distributions; x is the proposed value, y is the measured value (with error er)
 
 
-
 # could also be used as approx to exponential, if shape < 1
 l.gamma <-  function(x, y, shape) 
   return(dgamma(x, shape, shape/y))
-
 
 
 l.uniform <- function(x, y, delta) # assuming cal BP
   return(dunif(x, min, min-delta))
 
 
-
 l.after <- function(x, y) # assuming cal BP, == returns 0
   return(ifelse(x < y, 1, 0))
 
 
-  
 l.before <- function(x, y) # assuming cal BP, == returns 0
   return(ifelse(x > y, 1, 0))
 

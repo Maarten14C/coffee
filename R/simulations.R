@@ -12,18 +12,19 @@
 #' @param scatter There is always a degree of scatter between measurements, and the amount of scatter can be modelled using, e.g., \code{scatter=2*error}. Set at 0 to model radiocarbon dates that are 100\% faithful to the calibration curve (very unlikely!).
 #' @param error Laboratory error of the radiocarbon dates as percentage of the mean. Defaults to 0.02.
 #' @param min.error Minimum laboratory to be reported. Defaults to 10 (C-14 year).
-#' @param tree.dir The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.
+#' @param tree.dir The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param cc Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).
 #' @param postbomb Negative C-14 ages (younger than 0 cal BP or AD 1950) should be modelled using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
+#' @param ask Ask if a folder may be made and files written into it
 #' @return A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, the rings (starting with year 0 and working backward in time), and the calibration curve to be used.
 #' @examples
 #'   treedir <- tempdir()
 #'   sim.rings("manyrings", age.min=1000, length=400, gaps=10, tree.dir=treedir)
-#'   rings("manyrings", treedir=tree.dir)
+#'   rings("manyrings", tree.dir=treedir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export
-sim.rings <- function(name="mytree", age.min=100, length=400, gaps=20, offset=0, scatter=2*error, error=0.02, min.error=10, tree.dir="trees", sep=",", cc=1, postbomb=FALSE) {
+sim.rings <- function(name="mytree", age.min=100, length=400, gaps=20, offset=0, scatter=2*error, error=0.02, min.error=10, tree.dir="trees", sep=",", cc=1, postbomb=FALSE, ask=TRUE) {
   if(length(gaps) == 1)
     simtree <- seq(age.min, age.min+length, by=gaps) else
       simtree <- age.min+gaps
@@ -43,11 +44,10 @@ sim.rings <- function(name="mytree", age.min=100, length=400, gaps=20, offset=0,
   simtree <- cbind(simtree, errors, simtree[,1]-min(simtree[,1]), 1) # should be more flexible regarding calibration curve
   colnames(simtree) <- c("lab ID", "age", "error", "ring", "cc")
   
-  if(!dir.exists(tree.dir))
-    dir.create(file.path(tree.dir))
-  if(!dir.exists(file.path(tree.dir, name)))
-    dir.create(file.path(tree.dir, name))
-  write.table(simtree, file.path(tree.dir, name, paste0(name, ".csv")), row.names=FALSE, sep=sep, quote=FALSE)
+  treedir <- file.path(tree.dir, name)
+  if(!dir.exists(treedir))
+    assign_dir(tree.dir, name, "tree.dir", ask)
+  write.table(simtree, file.path(treedir, paste0(name, ".csv")), row.names=FALSE, sep=sep, quote=FALSE)
 }
 
 
@@ -65,18 +65,18 @@ sim.rings <- function(name="mytree", age.min=100, length=400, gaps=20, offset=0,
 #' @param error Laboratory error of the radiocarbon dates as percentage of the mean. Defaults to 0.02.
 #' @param min.error Minimum laboratory to be reported. Defaults to 10 (C-14 year).
 #' @param rounded Rounding of the simulated calendar years. Rounds to single years by default.
-#' @param strat.dir The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.
+#' @param strat.dir The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param cc Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).
 #' @param postbomb Negative C-14 ages (younger than 0 cal BP or AD 1950) should be modelled using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
+#' @param ask Ask if a folder may be made and files written into it 
 #' @return A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, their relative positions (starting with the youngest one at top, and counting upward going down the sequence), and the calibration curve to be used.
 #' @examples
-#'   strat.dir <- tempdir()
-#'   sim.strat("ordered.mud", age.min=1000, length=5000, n=10, treedir=strat.dir)
-#'   strat("ordered.mud", treedir=tree.dir)
+#'   stratdir <- tempdir()
+#'   sim.strat("ordered.mud", age.min=1000, length=5000, n=10, strat.dir=stratdir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export
-sim.strat <- function(name="mystrat", age.min=4321, length=800, n=5, offset=0, scatter=2*error, error=0.02, min.error=10, rounded=0, strat.dir="strats", sep=",", cc=1, postbomb=FALSE) {
+sim.strat <- function(name="mystrat", age.min=4321, length=800, n=5, offset=0, scatter=2*error, error=0.02, min.error=10, rounded=0, strat.dir="strats", sep=",", cc=1, postbomb=FALSE, ask=TRUE) {
   truth <- cumsum(runif(n)) # randomly increasing
   truth <- round(age.min + length * (truth/max(truth)), digits=rounded)
 
@@ -95,12 +95,10 @@ sim.strat <- function(name="mystrat", age.min=4321, length=800, n=5, offset=0, s
   strat <- cbind(strat, errors, 1:n, cc)
   colnames(strat) <- c("lab ID", "age", "error", "position", "cc")
   
-  #write.table(strat, name, row.names=FALSE, sep=sep, quote=FALSE)
-  if(!dir.exists(strat.dir))
-    dir.create(file.path(strat.dir))
-  if(!dir.exists(file.path(strat.dir, name)))
-    dir.create(file.path(strat.dir, name))
-  write.table(strat, file.path(strat.dir, name, paste0(name, ".csv")), sep=sep, quote=FALSE)
+  stratdir <- file.path(strat.dir, name)
+  if(!dir.exists(stratdir))
+    assign_dir(strat.dir, name, "strat.dir", ask)
+  write.table(strat, file.path(stratdir, paste0(name, ".csv")), sep=sep, quote=FALSE)
 }
 
 

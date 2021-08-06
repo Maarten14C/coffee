@@ -56,7 +56,7 @@ strat(burnin=0, thinning=1, its=2000, init.ages=seq(3000, 4000, length=5))
 
 ![output graph of a strat simulation with an overly short MCMC run](./strat_short.png)
 
-The burnin in the above example took around 500 to 1000 iterations, and also clearly visible are long horizontal stretches that indicate parts of the MCMC where no iterations could be accepted. Hence the need for thinning and much longer runs.
+The burnin in the above example took around 500 to 1500 iterations, and also clearly visible are long horizontal stretches that indicate parts of the MCMC where no iterations could be accepted. Hence the need for thinning and much longer runs.
 
 ***
 

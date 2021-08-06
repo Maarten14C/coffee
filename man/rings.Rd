@@ -21,7 +21,8 @@ rings(
   postbomb = FALSE,
   BCAD = FALSE,
   times = 3,
-  plot = TRUE,
+  talk = TRUE,
+  draw = TRUE,
   ...
 )
 }
@@ -29,6 +30,8 @@ rings(
 \item{name}{name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{treedir} folder. Default names include Ulandryk4 and mytree.}
 
 \item{ring}{The ring for which the age estimate should be calculated. Defaults to the youngest ring, 0.}
+
+\item{tree.dir}{The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.}
 
 \item{sep}{Separator for the fields in the .csv file. Defaults to a comma.}
 
@@ -56,11 +59,11 @@ rings(
 
 \item{times}{The range of years to be calculated, as multiples of the uncertainties of the data points. E.g. if the lab error of the oldest date is 20 years, and times is set to 5, the calculation range will be extended by 20*5 years.}
 
-\item{plot}{Whether or not to draw a plot (by calling the function \code{plot.rings()}.}
+\item{talk}{Whether or not to provide feedback on folders written into.}
+
+\item{draw}{Whether or not to draw plots.}
 
 \item{...}{Options for the plot. See \code{plot.rings}.}
-
-\item{treedir}{The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.}
 }
 \value{
 the probabilities for the relevant calendar years.

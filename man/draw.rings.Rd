@@ -111,9 +111,9 @@ A plot with the calibrated distributions of the individual dates and the wiggle-
 A plot with two panels. The top panel shows the calibrated distributions (in blue) and the wiggle-match age-modelled age estimates for each dated ring (grey). The bottom panel shows the fit of the uncalibrated radiocarbon dates (steelblue dots and lab error bars) to the calibration curve (green), as well as the age estimate of the youngest ring (grey) and its hpd range (black).
 }
 \examples{
-  tree.dir <- tempdir()
-  rings("Ulandryk4", tree.dir=tree.dir, plot=FALSE)
-  draw.rings("Ulandryk4", tree.dir=tree.dir)
+  treedir <- tempdir()
+  rings("Ulandryk4", tree.dir=treedir, plot=FALSE)
+  draw.rings("Ulandryk4", tree.dir=treedir)
 }
 \author{
 Maarten Blaauw, J. Andres Christen

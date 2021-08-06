@@ -1,6 +1,11 @@
 #' coffee
-#' @description While individual calibrated radiocarbon dates can span several centuries, combining multiple dates together with any chronological constraints can make a chronology much more robust and precise. This package uses Bayesian methods to enforce the chronological ordering of radiocarbon and other dates, for example for trees with multiple radiocarbon dates spaced at exactly known intervals (e.g., 10 annual rings). Another example is sites where the relative chronological position of the dates is taken into account - the ages of dates further down a site must be older than those of dates further up.
+#' @description While individual calibrated radiocarbon dates can span several centuries, combining multiple dates together with any chronological constraints can make a chronology much more robust and precise. This package uses Bayesian methods to enforce the chronological ordering of radiocarbon and other dates, for example for trees with multiple radiocarbon dates spaced at exactly known intervals (e.g., every 10 annual rings). Another example is sites where the relative chronological position of the dates is taken into account - the ages of dates further down a site must be older than those of dates further up.
 #'
+#' examples include:
+#' 
+#' rings()
+#' 
+#' strat()
 #' @docType package
 #' @author Maarten Blaauw <maarten.blaauw@qub.ac.uk> J. Andres Christen <jac@cimat.mx>
 #' @importFrom grDevices dev.cur dev.off pdf dev.copy2pdf grey rgb dev.list extendrange
@@ -44,45 +49,7 @@ library(IntCal)
 
 #' Christen JA, 2003. Bwigg: An Internet facility for Bayesian radiocarbon wiggle-matching. Internet Archaeology 13. \doi{10.11141/ia.13.2}
 
-#' Christen JA, Fox C 2010. A General Purpose Sampling Algorithm for Continuous Distributions (the t-walk). Bayesian Analysis 5, 263-282. \url{http://ba.stat.cmu.edu/journal/2010/vol05/issue02/christen.pdf}
-
+#' Christen JA, Fox C 2010. A General Purpose Sampling Algorithm for Continuous Distributions (the t-walk). Bayesian Analysis 5, 263-282.
 
 ### some generic functions
-
-
-# function to load results in global environment - copied from rbacon package
-# parameter position defaults to 1, which equals an assignment to the global environment
-assign_to_global <- function(key, val, pos=1) {
-  assign(key, val, envir=as.environment(pos) )
-}
-
-
-
-# If the dir is left empty, check for a folder named trees or strats, and make this folder if it doesn't exist yet and if the user agrees.
-# Check if we have write access. If not, tell the user to provide a different, writeable location for the dir.
-assign_dir <- function(mydir, name, folder="trees", option="treedir", ask=TRUE) {
-  if(mydir == "") {
-    if(dir.exists(folder))
-      mydir <- folder else {
-          mydir <- folder
-          ans <- readline(paste0("I will create a folder called ", mydir, "and place output files there, is that OK? (y/n)  "))
-          if(ask)
-            if(tolower(substr(ans,1,1)) == "y")
-              wdir <- dir.create(mydir, FALSE) else
-                stop("No problem. Please provide an alternative folder location using", option, call.=FALSE)
-         if(!wdir)
-           stop("cannot write into the current directory.\nPlease set ", option, " to somewhere where you have writing access, e.g. Desktop or ~.", call.=FALSE)
-        }
-  } else {
-    if(!dir.exists(mydir))
-      wdir <- dir.create(mydir, FALSE)
-      if(!dir.exists(mydir)) # if it still doesn't exist, we probably don't have enough permissions
-        stop("cannot write into the current directory.\nPlease set ", option, " to somewhere where you have writing access, e.g. Desktop or ~.", call.=FALSE)
-  }
-  mydir <- file.path(mydir)
-  message("The run's files will be put in this folder: ", file.path(mydir, name))
-  return(mydir)
-}
-
-
 

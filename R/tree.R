@@ -15,10 +15,9 @@
 #' Default tree files include Ulandryk4 (Christen 2003) and a simulated tree (see \code{sim.tree()}).
 #'
 #' By default, the data are calibrated assuming a student-t distribution, which has wider tails than the normal distribution and deals well with outliers ().
-#' @return the probabilities for the relevant calendar years.
 #' @param name name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{treedir} folder. Default names include Ulandryk4 and mytree.
 #' @param ring The ring for which the age estimate should be calculated. Defaults to the youngest ring, 0.
-#' @param treedir The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.
+#' @param tree.dir The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param normal Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009)
 #' @param delta.R The ages can be modelled to have an offset. The mean is 0 by default.
@@ -32,8 +31,10 @@
 #' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
 #' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.
 #' @param times The range of years to be calculated, as multiples of the uncertainties of the data points. E.g. if the lab error of the oldest date is 20 years, and times is set to 5, the calculation range will be extended by 20*5 years.
-#' @param plot Whether or not to draw a plot (by calling the function \code{plot.rings()}.
+#' @param talk Whether or not to provide feedback on folders written into.
+#' @param draw Whether or not to draw plots.
 #' @param ... Options for the plot. See \code{plot.rings}.
+#' @return the probabilities for the relevant calendar years.
 #' @examples
 #'   rings("Ulandryk4", tree.dir=tempdir())
 #'   rings("mytree", tree.dir=tempdir())
@@ -47,17 +48,14 @@
 #'
 #' Christen JA, Perez S, 2009. A new robust statistical model for radiocarbon data. Radiocarbon 51, 1047-1059
 #' @export
-rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, ask=TRUE, age.steps=1, cutoff=1e-6, cc=1, postbomb=FALSE, BCAD=FALSE, times=3, plot=TRUE, ...) {
+rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, ask=TRUE, age.steps=1, cutoff=1e-6, cc=1, postbomb=FALSE, BCAD=FALSE, times=3, talk=TRUE, draw=TRUE, ...) {
 
-  # If treedir is left empty, check for a folder named trees in the current working directory. Ask permission to make this folder if it doesn't exist yet. Read the file.
-  # Check if we have write access. If not, tell the user to provide a different, writeable location for treedir.
-  tree.dir <- assign_dir(tree.dir, name, "trees", ask)
+  tree.dir <- assign_dir(tree.dir, name, "tree.dir", ask, talk)
   if(name %in% c("mytree", "Ulandryk4")) {
-    dir.create(file.path(tree.dir, name), showWarnings = FALSE, recursive = TRUE)
     fileCopy <- system.file(paste0("extdata/", name, ".csv"), package="coffee")
-    file.copy(fileCopy, file.path(tree.dir, name), recursive = TRUE, overwrite=FALSE)
+    file.copy(fileCopy, tree.dir, recursive = TRUE, overwrite=FALSE)
   }
-  dat <- read.table(file.path(tree.dir, name, paste0(name, ".csv")), header=TRUE, sep=",")
+  dat <- read.table(file.path(tree.dir, paste0(name, ".csv")), header=TRUE, sep=",")
 
   # file sanity checks; ring is tree ring number
   OK <- TRUE
@@ -102,8 +100,8 @@ rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE
   OK <- which(probs > cutoff)
   out <- cbind(yrseq[OK], probs[OK])
   colnames(out) <- c("yr", "prob")
-  write.table(out, file.path(tree.dir, name, paste0(name, "_probs.txt")), sep="\t", row.names=FALSE, quote=FALSE)
-  if(plot)
+  write.table(out, file.path(tree.dir, paste0(name, "_probs.txt")), sep="\t", row.names=FALSE, quote=FALSE)
+  if(draw)
     draw.rings(name=name, dat=dat, out=out, cc=cc, BCAD=BCAD, normal=normal, t.a=t.a, t.b=t.b)
   invisible(list(dat, out))
 }
@@ -147,9 +145,9 @@ rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE
 #' @param set.layout By default, the layout of the two plots is set automatically (2 plots in one column).
 #' @return A plot with the calibrated distributions of the individual dates and the wiggle-match distributions (top), and the dates on the calibration curve together with the age distribution for ring 0.
 #' @examples
-#'   tree.dir <- tempdir()
-#'   rings("Ulandryk4", tree.dir=tree.dir, plot=FALSE)
-#'   draw.rings("Ulandryk4", tree.dir=tree.dir)
+#'   treedir <- tempdir()
+#'   rings("Ulandryk4", tree.dir=treedir, plot=FALSE)
+#'   draw.rings("Ulandryk4", tree.dir=treedir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export
 draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, dat=c(), out=c(), cc=1, postbomb=FALSE, BCAD=FALSE, t.a=3, t.b=4, x.lim=c(), x1.axis=TRUE, x1.labels=FALSE, x1.lab=c(), rev.x=FALSE, y1.lab=c(), x2.lab=c(), y2.lab=c(), ex=0.2, plot.cc=TRUE, plot.dists=TRUE, mar.1=c(1,3,1,1), mar.2=c(3,3,0,1), mgp=c(1.7, .7, 0), dist.res=500, date.col="steelblue", cc.col=rgb(0, 0.5, 0, 0.5), dist.col=rgb(0,0,0,0.5), calib.col=rgb(0,0,1,0.25), range.col="black", set.layout=TRUE) {

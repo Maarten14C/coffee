@@ -1,6 +1,6 @@
 ####  Program (package) with the t-walk implementation in R
 ####  see http://www.cimat.mx/~jac/twalk/
-####  Author J. Andres Christen
+####  Author and copyright holder J. Andres Christen
 
 ### this version adapted from the Rtwalk CRAN package version 1.8.0 (2015-09-18).
 

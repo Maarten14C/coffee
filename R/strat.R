@@ -11,7 +11,6 @@
 #' Then this iteration with the updated group of age estimates is either accepted or rejected. The acceptance probability depends on the iteration's energy; if its energy is higher than that of the previous iteration it is accepted, but if it is lower, it is accepted with a probability proportional to its relative energy. Therefore, over many iterations the process will 'learn' from the data and find high-energy combinations of parameter values that fit with the prior constraints that the ages should be ordered chronologically.
 #' Because the iterations are based on a process of modifying values of one parameter each iteration, and because some iterations will not be accepted, the MCMC output will often have a large degree of dependence between neighbouring iterations. Therefore, some thinning will have to be done, by storing only one every few iterations (default 20). Also, since the initial ball-park estimates could be quite wrong, the first 100 or so iterations should also be discarded (burnin). 
 #' It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
-#' @return a variable 'info' which contains the dating and modelling information to produce a plot. Also calls the function \code{draw.strat} to produce a plot of the results.
 #' @param name Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.
 #' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{treedir="strats"}.
 #' @param its Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}.
@@ -29,21 +28,28 @@
 #' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
 #' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.
 #' @param ask Whether or not to ask if a folder should be made (if required).
+#' @param talk Whether or not to provide feedback on folders written into.
+#' @param draw Whether or not to draw plots.
 #' @param ... Options for the plot. See \code{plot.strat}.
+#' @return a variable 'info' which contains the dating and modelling information to produce a plot. Also calls the function \code{draw.strat} to produce a plot of the results.
 #' @examples
-#'   strat("mystrat", strat.dir=tempdir())
+#' \dontrun{
+#' tmp <- tempdir()
+#' strat(, strat.dir=tmp)
+#' }
 #' @references
 #' Bronk Ramsey C, 1995. Radiocarbon calibration and analysis of stratigraphy: The OxCal program. Radiocarbon 37, 425 – 430.
 #'
 #' Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity 65, 808-821.
 #'
-#' Buck et al. 1999. BCal:  an on-line Bayesian radiocarbon calibration tool. Internet Archaeology 7. 
+#' Buck et al. 1999. BCal: an on-line Bayesian radiocarbon calibration tool. Internet Archaeology 7. 
 #'
-#' Christen JA, Fox C 2010. A General Purpose Sampling Algorithm for Continuous Distributions (the t-walk). Bayesian Analysis 5, 263-282. 
+#' Christen JA, Fox C 2010. A general purpose sampling algorithm for continuous distributions (the t-walk). Bayesian Analysis 5, 263-282. 
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=50, init.ages=c(), showrun=FALSE, sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, postbomb=FALSE, BCAD=FALSE, ask=TRUE, ...) {
-  stratdir <- assign_dir(strat.dir, name, ask)
-  dat <- read.table(file.path(strat.dir, name, paste0(name, ".csv")), header=TRUE, sep=sep)
+strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=50, init.ages=c(), showrun=FALSE, sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, postbomb=FALSE, BCAD=FALSE, ask=TRUE, talk=TRUE, draw=TRUE, ...) {
+  stratdir <- assign_dir(strat.dir, name, "strat.dir", ask, talk)
+#  cat("\n", stratdir)
+  dat <- read.table(file.path(stratdir, paste0(name, ".csv")), header=TRUE, sep=sep)
 
   # file sanity checks
   OK <- TRUE
@@ -160,8 +166,17 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
   write.table(info$Us, file.path(strat.dir, name, paste0(name, "_energy.out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
 
   info$dets <- dat
+  
+  assign_to_global <- function(x, value, pos=1){
+    assign(x, value, envir=as.environment(pos) )
+  }
   assign_to_global("info", info)
-  draw.strat(name, info, BCAD=BCAD, strat.dir=strat.dir, ...)
+#  pos <- 1
+#  envir = as.environment(pos)
+#  assign("info", info, envir = envir)
+#  assign("info", info, envir=as.environment(1))
+  if(draw)
+    draw.strat(name, info, BCAD=BCAD, strat.dir=stratdir, ...)
 }
 
 
@@ -169,6 +184,7 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 #' @name draw.strat
 #' @title plot the dates and model of chronologically ordered dated depths 
 #' @description A plot with two panels. The top panel shows the MCMC output. The bottom panel shows the individually calibrated dates (in downward light gray) as well as the modelled ages constrained by chronological ordering (upward dark-grey) and lines with the hpd ranges (black).
+#' @param name Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.
 #' @param set This option reads the 'info' variable, which contains the data and the model output. 
 #' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{start.dir="strats"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
@@ -196,10 +212,6 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 #' @param mar.bottom Margins around the bottom panel. Defaults to \code{mar.bottom=c(3,3,0.5,1)}.
 #' @param heights Relative heights of the two panels in the plot. Defaults to 0.3 for the top and 0.7 for the bottom panel.
 #' @return A plot with two panels showing the MCMC run and the calibrated and modelled ages.
-#' @examples
-#'   strat.dir <- tempdir()
-#'   strat("mystrat", strat.dir=strat.dir, plot=FALSE)
-#'   draw.strat("mystrat", tree.dir=strat.dir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export
 draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=",", calibrated.ex=.5, calibrated.mirror=FALSE, calibrated.up=TRUE, modelled.ex=0.5, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", simulation=FALSE, simulation.col=grey(0.5), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7)) {
@@ -250,8 +262,16 @@ draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=
     if(!is.na(range.col))
       segments(hpds[[i]][,1], i, hpds[[i]][,2], i, col=range.col, lwd=2)
   }
-   info$hpds <- hpds
-   assign_to_global("info", info)
+   set$hpds <- hpds
+   
+#   assign_to_global <- function(pos=1){
+#     assign("info", set, envir=as.environment(pos) )
+#   }
+   assign_to_global("info", set)
+#   pos <- 1
+#   envir = as.environment(pos)
+#   assign("info", info, envir = envir)
+   #assign("info", info, envir=as.environment(1))
 }
 
 

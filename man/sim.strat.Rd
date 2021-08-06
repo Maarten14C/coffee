@@ -17,7 +17,8 @@ sim.strat(
   strat.dir = "strats",
   sep = ",",
   cc = 1,
-  postbomb = FALSE
+  postbomb = FALSE,
+  ask = TRUE
 )
 }
 \arguments{
@@ -39,13 +40,15 @@ sim.strat(
 
 \item{rounded}{Rounding of the simulated calendar years. Rounds to single years by default.}
 
-\item{strat.dir}{The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.}
+\item{strat.dir}{The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.}
 
 \item{sep}{Separator for the fields in the .csv file. Defaults to a comma.}
 
 \item{cc}{Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).}
 
 \item{postbomb}{Negative C-14 ages (younger than 0 cal BP or AD 1950) should be modelled using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
+
+\item{ask}{Ask if a folder may be made and files written into it}
 }
 \value{
 A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, their relative positions (starting with the youngest one at top, and counting upward going down the sequence), and the calibration curve to be used.
@@ -57,9 +60,8 @@ Simulate the radiocarbon dating (or with dates that are already on the cal BP sc
 Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The modelling is performed in a Bayesian framework (see \code{strat}). The amount of scatter, the laboratory error and an offset can also be modelled.
 }
 \examples{
-  strat.dir <- tempdir()
-  sim.strat("ordered.mud", age.min=1000, length=5000, n=10, treedir=strat.dir)
-  strat("ordered.mud", treedir=tree.dir)
+  stratdir <- tempdir()
+  sim.strat("ordered.mud", age.min=1000, length=5000, n=10, strat.dir=stratdir)
 }
 \author{
 Maarten Blaauw, J. Andres Christen

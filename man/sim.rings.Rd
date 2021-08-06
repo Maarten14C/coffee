@@ -16,7 +16,8 @@ sim.rings(
   tree.dir = "trees",
   sep = ",",
   cc = 1,
-  postbomb = FALSE
+  postbomb = FALSE,
+  ask = TRUE
 )
 }
 \arguments{
@@ -36,13 +37,15 @@ sim.rings(
 
 \item{min.error}{Minimum laboratory to be reported. Defaults to 10 (C-14 year).}
 
-\item{tree.dir}{The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.}
+\item{tree.dir}{The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.}
 
 \item{sep}{Separator for the fields in the .csv file. Defaults to a comma.}
 
 \item{cc}{Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).}
 
 \item{postbomb}{Negative C-14 ages (younger than 0 cal BP or AD 1950) should be modelled using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
+
+\item{ask}{Ask if a folder may be made and files written into it}
 }
 \value{
 A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, the rings (starting with year 0 and working backward in time), and the calibration curve to be used.
@@ -53,7 +56,7 @@ Simulate the dense radiocarbon dating of a tree or other deposit with exactly kn
 \examples{
   treedir <- tempdir()
   sim.rings("manyrings", age.min=1000, length=400, gaps=10, tree.dir=treedir)
-  rings("manyrings", treedir=tree.dir)
+  rings("manyrings", tree.dir=treedir)
 }
 \author{
 Maarten Blaauw, J. Andres Christen
