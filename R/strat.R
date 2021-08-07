@@ -119,12 +119,20 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
         (tb + ((y-cc.y)^2) / (2*(sqrt(cc.er^2 + er^2)^2))) ^ (-1*(ta+0.5))
 
   # (re)define the functions relevant for Runtwalk inline
+
   # uniform prior for the total span (needs checking):
   # to deal with prior problem reported by Steier & Rom 2000 and Nicholls & Jones 2001. OK?
-  span <- log((1/((max(init.ages) - min(init.ages)) + span))^(length(init.ages)-2))
+  # According to Nicholls & Jones 2002 (Radiocarbon 44), a non-biased function for the span prior phi, given the data theta, is:
+  # f(phi,theta) = ( 1/ (R - d(phi)) ) ( 1/ (d_phi)^M-1 )
+  # where R = A - P (P<=A) is the possible span (set at 55e3, the current limits of C-14 calibration), M is the number of dates/events, and d(phi) = phi_0 - phi_m is the (modelled) span between the boundary dates phi_m and phi_0.
+  # So the function of the span prior contains both the fixed, very wide prior range limits, set before looking at the data, and the modelled span values.
+
+  # span <- log((1/((max(init.ages) - min(init.ages)) + span))^(length(init.ages)-2))
 
   energy <- function(x, dets=dat, curves=ccs, cc1=cc.1, cc2=cc.2, cc3=cc.3, cc4=ccurve(4), Normal=normal, ta=t.a, tb=t.b) {
     #span <- log(1/((max(x) - min(x))^(length(x)-2)))
+    dphi <- max(x) - min(x)
+    span <- log( 1/(55e3 - dphi) * ( 1/ dphi^(length(x)-2) ) )
 
     if(0 %in% curves) {
       dat <- dets[which(dets[,5] == 0),]
