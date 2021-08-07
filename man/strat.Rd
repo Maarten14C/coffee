@@ -11,6 +11,7 @@ strat(
   burnin = 100,
   thinning = 50,
   init.ages = c(),
+  span = 5000,
   showrun = FALSE,
   sep = ",",
   normal = TRUE,
@@ -39,6 +40,8 @@ strat(
 \item{thinning}{After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations.}
 
 \item{init.ages}{By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually.}
+
+\item{span}{Extent by which the uniform prior should expand beyond the youngest and oldest initial age estimates. Defaults to \code{span=5000}.}
 
 \item{showrun}{Whether or not to show how the MCMC process is progressing during the run. Defaults to \code{FALSE}.}
 

@@ -26,10 +26,9 @@ NULL
 # ensure that functions such as pMC.age etc. are available immediately:
 library(IntCal)
 
-
-# also include (in future updates?): strat with uncertain sizes of gaps, sections w multiple dates in a position
-
 # some ideas/blurbs for future updates:
+
+# strats with uncertain sizes of gaps, sections w multiple dates in a position (that should date to the exact same year), starts and ends
 
 # columns within the .csv files: lab ID, age, error, position (see below), calibration curve, model, outlier, ...
 # position: 0, 1, 2, etc. for ordered dates. If some are within a Phase but unordered within the phase, they carry all the same number, e.g., 2, 2, 2. If they are ordered within a phase, perhaps do 2.0, 2.1, 2.2, etc.

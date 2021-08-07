@@ -17,6 +17,7 @@
 #' @param burnin Amount of iterations to remove at the start of the run. Defaults to \code{100}.
 #' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations.
 #' @param init.ages By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually.
+#' @param span Extent by which the uniform prior should expand beyond the youngest and oldest initial age estimates. Defaults to \code{span=5000}. 
 #' @param showrun Whether or not to show how the MCMC process is progressing during the run. Defaults to \code{FALSE}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param normal Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009)
@@ -46,7 +47,7 @@
 #'
 #' Christen JA, Fox C 2010. A general purpose sampling algorithm for continuous distributions (the t-walk). Bayesian Analysis 5, 263-282. 
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=50, init.ages=c(), showrun=FALSE, sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, postbomb=FALSE, BCAD=FALSE, ask=TRUE, talk=TRUE, draw=TRUE, ...) {
+strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=50, init.ages=c(), span=5e3, showrun=FALSE, sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, postbomb=FALSE, BCAD=FALSE, ask=TRUE, talk=TRUE, draw=TRUE, ...) {
   stratdir <- assign_dir(strat.dir, name, "strat.dir", ask, talk)
 #  cat("\n", stratdir)
   dat <- read.table(file.path(stratdir, paste0(name, ".csv")), header=TRUE, sep=sep)
@@ -93,7 +94,7 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
     init.ages <- sort(runif(nrow(dat), min.y, max.y))
   x0 <- sort(jitter(init.ages)) # initial ball-park age estimates
   xp0 <- sort(jitter(init.ages))  # twalk needs two sets of estimates
-
+  
   # load any calibration curve(s) we'll need
   ccs <- unique(dat[,5])
   cc.1 <- c(); cc.2 <- c(); cc.3 <- c(); cc.4 <-c()
@@ -118,9 +119,12 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
         (tb + ((y-cc.y)^2) / (2*(sqrt(cc.er^2 + er^2)^2))) ^ (-1*(ta+0.5))
 
   # (re)define the functions relevant for Runtwalk inline
+  # uniform prior for the total span (needs checking):
+  # to deal with prior problem reported by Steier & Rom 2000 and Nicholls & Jones 2001. OK?
+  span <- log((1/((max(init.ages) - min(init.ages)) + span))^(length(init.ages)-2))
+
   energy <- function(x, dets=dat, curves=ccs, cc1=cc.1, cc2=cc.2, cc3=cc.3, cc4=ccurve(4), Normal=normal, ta=t.a, tb=t.b) {
-    # to deal with prior problem reported by Steier & Rom 2000 and Nicholls & Jones 2001. OK?
-    span <- log(1/((max(x) - min(x))^(length(x)-2)))
+    #span <- log(1/((max(x) - min(x))^(length(x)-2)))
 
     if(0 %in% curves) {
       dat <- dets[which(dets[,5] == 0),]
