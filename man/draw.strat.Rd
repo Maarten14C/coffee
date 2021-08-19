@@ -46,7 +46,7 @@ draw.strat(
 
 \item{sep}{Separator for the fields in the .csv file. Defaults to a comma.}
 
-\item{calibrated.ex}{Exaggaration of the heights of the calibrated distributions. Defaults to 0.5. Note that more precise dates peak higher than dates with lower precision.}
+\item{calibrated.ex}{Exaggeration of the heights of the calibrated distributions. Defaults to 0.5. Note that more precise dates peak higher than dates with lower precision.}
 
 \item{calibrated.mirror}{Whether or not the individually calibrated (but not the modelled) distributions should be drawn both up and down, quite a bit like fish or swans. Defaults to FALSE.}
 

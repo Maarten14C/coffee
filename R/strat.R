@@ -15,7 +15,7 @@
 #' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{treedir="strats"}.
 #' @param its Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable and less reliable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}. Aim to set this to such values that at least 3000 iterations remain after removing the burnin and thinning.
 #' @param burnin Amount of iterations to remove at the start of the run. Defaults to \code{100}.
-#' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.
+#' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependence between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.
 #' @param init.ages By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually.
 #' @param span Extent by which the uniform prior should expand beyond the youngest and oldest initial age estimates. Defaults to \code{span=5000}. 
 #' @param showrun Whether or not to show how the MCMC process is progressing during the run. Defaults to \code{FALSE}.
@@ -202,7 +202,7 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 #' @param set This option reads the 'info' variable, which contains the data and the model output. 
 #' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{start.dir="strats"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
-#' @param calibrated.ex Exaggaration of the heights of the calibrated distributions. Defaults to 0.5. Note that more precise dates peak higher than dates with lower precision.
+#' @param calibrated.ex Exaggeration of the heights of the calibrated distributions. Defaults to 0.5. Note that more precise dates peak higher than dates with lower precision.
 #' @param calibrated.mirror Whether or not the individually calibrated (but not the modelled) distributions should be drawn both up and down, quite a bit like fish or swans. Defaults to FALSE.
 #' @param calibrated.up Whether the calibrated distributions should be drawn upward or downward (the default, resembling the reflections of islands in the sea, or swimming animals if you wish)
 #' @param modelled.ex Exaggaration of the heights of the age-modelled distributions. Defaults to 0.5. Note that more precise ages peak higher than ages with lower precision.

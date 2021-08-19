@@ -78,7 +78,7 @@ draw.rings(
 
 \item{y2.lab}{The labels for the bottom y-axis. Defaults to 14C BP with superscript 14, so \code{expression(""^14*C~BP)}.}
 
-\item{ex}{Exaggaration of the heights of the calibrated distributions. Defaults to 0.2 so there is plenty space to plot many distributions.}
+\item{ex}{Exaggeration of the heights of the calibrated distributions. Defaults to 0.2 so there is plenty space to plot many distributions.}
 
 \item{plot.cc}{Whether or not to plot a panel with the calibration curve.}
 

@@ -130,7 +130,7 @@ rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE
 #' @param y1.lab The labels for the y-axis. Defaults to \code{"rings"}.
 #' @param x2.lab The labels for the bottom calendar axis (default \code{age.lab="cal BP"} or \code{"BC/AD"} if \code{BCAD=TRUE}).
 #' @param y2.lab The labels for the bottom y-axis. Defaults to 14C BP with superscript 14, so \code{expression(""^14*C~BP)}.
-#' @param ex Exaggaration of the heights of the calibrated distributions. Defaults to 0.2 so there is plenty space to plot many distributions.
+#' @param ex Exaggeration of the heights of the calibrated distributions. Defaults to 0.2 so there is plenty space to plot many distributions.
 #' @param plot.cc Whether or not to plot a panel with the calibration curve.
 #' @param plot.dists Whether or not to plot a panel with the distributions.
 #' @param mar.1 Margins around the first/top plot.

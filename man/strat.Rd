@@ -37,7 +37,7 @@ strat(
 
 \item{burnin}{Amount of iterations to remove at the start of the run. Defaults to \code{100}.}
 
-\item{thinning}{After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.}
+\item{thinning}{After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependence between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.}
 
 \item{init.ages}{By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually.}
 

@@ -596,7 +596,7 @@ GetAutoCov <- function( dt, lags)
 
 
 #' @name IAT
-#' @title calculate the Tntegrated Autocorrelation Time
+#' @title calculate the Integrated Autocorrelation Time
 #' @description Calculate the Tntegrated Autocorrelation Time, which gives the proposed value for thinning. E.g., if the IAT is 80, it is good to thin the MCMC run by storing only every 80 iterations. This method is slower than GetAutoCov, but much better.
 #' @param set This option reads the 'info' variable, which contains the data and the model output.
 #' @param par The parameter to test. Defaults to 0.

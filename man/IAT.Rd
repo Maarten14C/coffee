@@ -2,7 +2,7 @@
 % Please edit documentation in R/twalk.R
 \name{IAT}
 \alias{IAT}
-\title{calculate the Tntegrated Autocorrelation Time}
+\title{calculate the Integrated Autocorrelation Time}
 \usage{
 IAT(set, par = 0, from = 1, to)
 }
