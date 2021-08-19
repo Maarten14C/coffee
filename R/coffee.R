@@ -40,11 +40,9 @@ library(IntCal)
 
 # no need for 'after' or 'before', because this can already be inferred from the position column? Add an entry with no information other than the order? For non-dated levels...
 
-# strat has a modified prior to solve the problem mentioned by Steier and Rom 2000 (https://doi.org/10.1017/S0033822200058999), as well as Nicholls & Jones 2001. Is this OK? Check with Andres
-
 # add MCMC checks a la baconvergence for strat?
 
-# also provide 95% ranges (or hpds?) hpds sometimes are >100%???
+# also provide 95% ranges (or hpds?) hpds sometimes are >100%?
 
 # an animation of strat would be fun, with 0 burnin and a short run. Draw coloured dots of the simulated ages and how they move through the iterations. Leave shadows of previous dots?
 

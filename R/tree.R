@@ -33,7 +33,7 @@
 #' @param times The range of years to be calculated, as multiples of the uncertainties of the data points. E.g. if the lab error of the oldest date is 20 years, and times is set to 5, the calculation range will be extended by 20*5 years.
 #' @param talk Whether or not to provide feedback on folders written into.
 #' @param draw Whether or not to draw plots.
-#' @param ... Options for the plot. See \code{plot.rings}.
+#' @param ... Options for the plot. See \code{draw.rings}.
 #' @return the probabilities for the relevant calendar years.
 #' @examples
 #'   rings("Ulandryk4", tree.dir=tempdir())
@@ -102,7 +102,7 @@ rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE
   colnames(out) <- c("yr", "prob")
   write.table(out, file.path(tree.dir, paste0(name, "_probs.txt")), sep="\t", row.names=FALSE, quote=FALSE)
   if(draw)
-    draw.rings(name=name, dat=dat, out=out, cc=cc, BCAD=BCAD, normal=normal, t.a=t.a, t.b=t.b)
+    draw.rings(name=name, dat=dat, out=out, cc=cc, BCAD=BCAD, normal=normal, t.a=t.a, t.b=t.b, ...)
   invisible(list(dat, out))
 }
 
@@ -146,7 +146,7 @@ rings <- function(name="mytree", ring=0, tree.dir="trees", sep=",", normal=FALSE
 #' @return A plot with the calibrated distributions of the individual dates and the wiggle-match distributions (top), and the dates on the calibration curve together with the age distribution for ring 0.
 #' @examples
 #'   treedir <- tempdir()
-#'   rings("Ulandryk4", tree.dir=treedir, plot=FALSE)
+#'   rings("Ulandryk4", tree.dir=treedir, draw=FALSE)
 #'   draw.rings("Ulandryk4", tree.dir=treedir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export
@@ -200,7 +200,7 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
     if(length(y2.lab) == 0)
       y2.lab <- expression(""^14*C~BP)
     if(rev.x)
-      cal.lim <- rev(cal.lim)
+      cal.lim <- cal.lim[2:1]
 
     if(plot.dists) {
       plot(0, type="n", xlim=cal.lim, ylim=range(dat[,4]), xlab=x1.lab, ylab=y1.lab, bty="l", xaxt="n")

@@ -63,7 +63,7 @@ rings(
 
 \item{draw}{Whether or not to draw plots.}
 
-\item{...}{Options for the plot. See \code{plot.rings}.}
+\item{...}{Options for the plot. See \code{draw.rings}.}
 }
 \value{
 the probabilities for the relevant calendar years.

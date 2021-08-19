@@ -9,7 +9,7 @@ strat(
   strat.dir = "strats",
   its = 50000,
   burnin = 100,
-  thinning = 50,
+  thinning = c(),
   init.ages = c(),
   span = 5000,
   showrun = FALSE,
@@ -33,11 +33,11 @@ strat(
 
 \item{strat.dir}{The directory where the folders of the individual stratigraphies live. Defaults to \code{treedir="strats"}.}
 
-\item{its}{Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}.}
+\item{its}{Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable and less reliable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}. Aim to set this to such values that at least 3000 iterations remain after removing the burnin and thinning.}
 
 \item{burnin}{Amount of iterations to remove at the start of the run. Defaults to \code{100}.}
 
-\item{thinning}{After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations.}
+\item{thinning}{After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.}
 
 \item{init.ages}{By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually.}
 
@@ -80,7 +80,7 @@ Model radiocarbon dates (or dates that are already on the cal BP scale) of a dep
 Model the radiocarbon or cal BP ages of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to be in chronological order.
 }
 \details{
-The calculations are made in a Bayesian framework. For each iteration, it is checked that all modelled age estimates are in chronological order - if not, the iteration is not accepted. See also Buck et al. 1991. Other software that enables Bayesian chronological ordering includes Bcal (Buck et al. 1999) and OxCal (Sequence model; Bronk Ramsey 1995).
+The calculations are made in a Bayesian framework. For each iteration, it is checked that all modelled age estimates are in chronological order - if not, the iteration is not accepted. See also Buck et al. 1991 and Nicholls & Jones 2001. Other software that enables Bayesian chronological ordering includes Bcal (Buck et al. 1999) and OxCal (Sequence model; Bronk Ramsey 1995).
 
 Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The amount of scatter, the laboratory error and an offset can also be modelled.
 The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010). In this process, initial ball-park point estimates for the ages of each dated depth are given, and then modified through many iterations. For each iteration, a random dated depth is chosen and its age changed by just a little nudge, a check is performed to ensure that all age estimates remain in chronological order, and the 'energy' or likelihood of the age estimates is calculated (iterations where all ages fit well within the calibrated distributions receive a higher energy; see \code{l.calib}). 
@@ -101,5 +101,7 @@ Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and 
 
 Buck et al. 1999. BCal: an on-line Bayesian radiocarbon calibration tool. Internet Archaeology 7. 
 
-Christen JA, Fox C 2010. A general purpose sampling algorithm for continuous distributions (the t-walk). Bayesian Analysis 5, 263-282.
+Christen JA, Fox C 2010. A general purpose sampling algorithm for continuous distributions (the t-walk). Bayesian Analysis 5, 263-282. 
+
+Nicholls G, Jones M 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics) 50, 503-521.
 }

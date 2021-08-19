@@ -112,7 +112,7 @@ A plot with two panels. The top panel shows the calibrated distributions (in blu
 }
 \examples{
   treedir <- tempdir()
-  rings("Ulandryk4", tree.dir=treedir, plot=FALSE)
+  rings("Ulandryk4", tree.dir=treedir, draw=FALSE)
   draw.rings("Ulandryk4", tree.dir=treedir)
 }
 \author{

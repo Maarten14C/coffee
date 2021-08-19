@@ -2,12 +2,10 @@ Package: coffee
 Type: Package
 Title: Chronological Ordering for Fossils and Environmental Events
 Version: 0.1.0
-Date: 2021-08-02
+Date: 2021-08-20
 Authors@R: c(
-    person("Maarten", "Blaauw", email = "maarten.blaauw@qub.ac.uk", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5680-1515")),
-    person("J. Andres", "Christen", email = "jac@cimat.mx", role = c("ctb", "cph"), comment = c(ORCID = "0000-0002-5795-4345")))
-Author: Maarten Blaauw [aut, cre],
-  J. Andres Christen [ctb, cph]
+  person("Maarten", "Blaauw", email = "maarten.blaauw@qub.ac.uk", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5680-1515")),
+  person("J. Andres", "Christen", email = "jac@cimat.mx", role = c("ctb", "cph"), comment = c(ORCID = "0000-0002-5795-4345")))
 Maintainer: Maarten Blaauw <maarten.blaauw@qub.ac.uk>
 Description: While individual calibrated radiocarbon dates can span several centuries, combining multiple dates together with any chronological constraints can make a chronology much more robust and precise. This package uses Bayesian methods to enforce the chronological ordering of radiocarbon and other dates, for example for trees with multiple radiocarbon dates spaced at exactly known intervals (e.g., 10 annual rings). Another example is sites where the relative chronological position of the dates is taken into account - the ages of dates further down a site must be older than those of dates further up.  
 License: GPL (>= 2)

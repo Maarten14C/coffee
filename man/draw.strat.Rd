@@ -31,7 +31,10 @@ draw.strat(
   mgp = c(2, 0.7, 0),
   mar.top = c(3, 3, 1, 1),
   mar.bottom = c(3, 3, 0.5, 1),
-  heights = c(0.3, 0.7)
+  heights = c(0.3, 0.7),
+  iterations.warning = TRUE,
+  warning.loc = "bottomleft",
+  warning.col = "red"
 )
 }
 \arguments{
@@ -88,6 +91,12 @@ draw.strat(
 \item{mar.bottom}{Margins around the bottom panel. Defaults to \code{mar.bottom=c(3,3,0.5,1)}.}
 
 \item{heights}{Relative heights of the two panels in the plot. Defaults to 0.3 for the top and 0.7 for the bottom panel.}
+
+\item{iterations.warning}{Whether or not to plot a warning if there are < 3000 iterations, too few for a reliable MCMC run.}
+
+\item{warning.loc}{Location of the warning}
+
+\item{warning.col}{Colour of the warning - defaults to red.}
 }
 \value{
 A plot with two panels showing the MCMC run and the calibrated and modelled ages.
@@ -96,5 +105,5 @@ A plot with two panels showing the MCMC run and the calibrated and modelled ages
 A plot with two panels. The top panel shows the MCMC output. The bottom panel shows the individually calibrated dates (in downward light gray) as well as the modelled ages constrained by chronological ordering (upward dark-grey) and lines with the hpd ranges (black).
 }
 \author{
-Maarten Blaauw, J. Andres Christen
+Maarten Blaauw
 }

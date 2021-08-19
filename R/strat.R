@@ -4,7 +4,7 @@
 #' @name strat
 #' @title Model chronologically ordered dates
 #' @description Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to are in chronological order.
-#' @details The calculations are made in a Bayesian framework. For each iteration, it is checked that all modelled age estimates are in chronological order - if not, the iteration is not accepted. See also Buck et al. 1991. Other software that enables Bayesian chronological ordering includes Bcal (Buck et al. 1999) and OxCal (Sequence model; Bronk Ramsey 1995).
+#' @details The calculations are made in a Bayesian framework. For each iteration, it is checked that all modelled age estimates are in chronological order - if not, the iteration is not accepted. See also Buck et al. 1991 and Nicholls & Jones 2001. Other software that enables Bayesian chronological ordering includes Bcal (Buck et al. 1999) and OxCal (Sequence model; Bronk Ramsey 1995).
 #' @description Model the radiocarbon or cal BP ages of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to be in chronological order.
 #' @details Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The amount of scatter, the laboratory error and an offset can also be modelled.
 #' The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010). In this process, initial ball-park point estimates for the ages of each dated depth are given, and then modified through many iterations. For each iteration, a random dated depth is chosen and its age changed by just a little nudge, a check is performed to ensure that all age estimates remain in chronological order, and the 'energy' or likelihood of the age estimates is calculated (iterations where all ages fit well within the calibrated distributions receive a higher energy; see \code{l.calib}). 
@@ -13,9 +13,9 @@
 #' It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
 #' @param name Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.
 #' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{treedir="strats"}.
-#' @param its Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}.
+#' @param its Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable and less reliable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}. Aim to set this to such values that at least 3000 iterations remain after removing the burnin and thinning.
 #' @param burnin Amount of iterations to remove at the start of the run. Defaults to \code{100}.
-#' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations.
+#' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependance between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.
 #' @param init.ages By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually.
 #' @param span Extent by which the uniform prior should expand beyond the youngest and oldest initial age estimates. Defaults to \code{span=5000}. 
 #' @param showrun Whether or not to show how the MCMC process is progressing during the run. Defaults to \code{FALSE}.
@@ -46,10 +46,11 @@
 #' Buck et al. 1999. BCal: an on-line Bayesian radiocarbon calibration tool. Internet Archaeology 7. 
 #'
 #' Christen JA, Fox C 2010. A general purpose sampling algorithm for continuous distributions (the t-walk). Bayesian Analysis 5, 263-282. 
+#'
+#' Nicholls G, Jones M 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics) 50, 503-521.
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=50, init.ages=c(), span=5e3, showrun=FALSE, sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, postbomb=FALSE, BCAD=FALSE, ask=TRUE, talk=TRUE, draw=TRUE, ...) {
+strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=c(), init.ages=c(), span=5e3, showrun=FALSE, sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, postbomb=FALSE, BCAD=FALSE, ask=TRUE, talk=TRUE, draw=TRUE, ...) {
   stratdir <- assign_dir(strat.dir, name, "strat.dir", ask, talk)
-#  cat("\n", stratdir)
   dat <- read.table(file.path(stratdir, paste0(name, ".csv")), header=TRUE, sep=sep)
 
   # file sanity checks
@@ -59,8 +60,9 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
   if(min(dat[,5]) < 0 || max(dat[,5]) > 4) OK <- FALSE # can use C14 or cal BP dates
   if(!OK)
     stop("Unexpected values in strat file. Please check", call.=FALSE)
-  if(thinning < 1)
-    stop("Thinning has to be at least 1 (and an integer)", call.=FALSE)
+  if(length(thinning) > 0)
+    if(thinning < 1)
+      stop("Thinning has to be at least 1 (and an integer)", call.=FALSE)
   if(burnin < 0)
     stop("Burnin has to be at least 0 (and an integer)", call.=FALSE)
 
@@ -120,19 +122,19 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 
   # (re)define the functions relevant for Runtwalk inline
 
-  # uniform prior for the total span (needs checking):
+  # uniform prior for the total span
   # to deal with prior problem reported by Steier & Rom 2000 and Nicholls & Jones 2001. OK?
   # According to Nicholls & Jones 2002 (Radiocarbon 44), a non-biased function for the span prior phi, given the data theta, is:
   # f(phi,theta) = ( 1/ (R - d(phi)) ) ( 1/ (d_phi)^M-1 )
   # where R = A - P (P<=A) is the possible span (set at 55e3, the current limits of C-14 calibration), M is the number of dates/events, and d(phi) = phi_0 - phi_m is the (modelled) span between the boundary dates phi_m and phi_0.
-  # So the function of the span prior contains both the fixed, very wide prior range limits, set before looking at the data, and the modelled span values.
+  # This becomes:
+  # span <- -log( (55e3 - dphi))  - (length(x)-2) * log( dphi)
 
   # span <- log((1/((max(init.ages) - min(init.ages)) + span))^(length(init.ages)-2))
 
   energy <- function(x, dets=dat, curves=ccs, cc1=cc.1, cc2=cc.2, cc3=cc.3, cc4=ccurve(4), Normal=normal, ta=t.a, tb=t.b) {
-    #span <- log(1/((max(x) - min(x))^(length(x)-2)))
     dphi <- max(x) - min(x)
-    span <- log( 1/(55e3 - dphi) * ( 1/ dphi^(length(x)-2) ) )
+    span <- -log( (55e3 - dphi))  - (length(x)-2) * log( dphi) # adapted per advice by Andres Christen and Marco Aquino
 
     if(0 %in% curves) {
       dat <- dets[which(dets[,5] == 0),]
@@ -163,30 +165,30 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 
   info <- Runtwalk(Tr=its, Obj=energy, Supp=support, x0=x0, xp0=xp0, PlotLogPost=ifelse(showrun, TRUE, FALSE) )
 
-  message("\nthinned the MCMC by storing every ", thinning, " iterations,")
-  thinning <- seq(1, its, by=thinning)
-  info$output <- info$output[thinning,]
-  info$Us <- info$Us[thinning]
   if(burnin > 0) {
     info$output <- info$output[-(1:burnin),]
     info$Us <- info$Us[-(1:burnin)]
+    #info$Tr <- info$Tr - burnin
   }
-  message("removed a burn-in of ", burnin, "; ", length(info$Us), " iterations remaining")
-
+  message("\nremoved a burn-in of ", burnin)
+  if(length(thinning) == 0) # by default, take the thinning value as suggested by rtwalk's IAT
+    thinning <- round(max(1, coffee::IAT(info, 0, burnin, info$Tr - burnin)))
+  message("thinning the MCMC by storing every by ", thinning, " iterations")
+  thinning <- seq(1, its-burnin, by=thinning)
+  info$output <- info$output[thinning,]
+  info$Us <- info$Us[thinning]
+  if(length(thinning) < 3e3)
+    message("Fewer than 3k MCMC iterations remaining, please consider a longer run by increasing its")
   # save output for future use
   write.table(info$output, file.path(strat.dir, name, paste0(name, ".out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
   write.table(info$Us, file.path(strat.dir, name, paste0(name, "_energy.out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
 
   info$dets <- dat
   
-  assign_to_global <- function(x, value, pos=1){
+  assign_to_global <- function(x, value, pos=1)
     assign(x, value, envir=as.environment(pos) )
-  }
   assign_to_global("info", info)
-#  pos <- 1
-#  envir = as.environment(pos)
-#  assign("info", info, envir = envir)
-#  assign("info", info, envir=as.environment(1))
+
   if(draw)
     draw.strat(name, info, BCAD=BCAD, strat.dir=stratdir, ...)
 }
@@ -223,10 +225,13 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 #' @param mar.top Margins around the top panel. Defaults to \code{mar.top=c(3,3,1,1)}.
 #' @param mar.bottom Margins around the bottom panel. Defaults to \code{mar.bottom=c(3,3,0.5,1)}.
 #' @param heights Relative heights of the two panels in the plot. Defaults to 0.3 for the top and 0.7 for the bottom panel.
+#' @param iterations.warning Whether or not to plot a warning if there are < 3000 iterations, too few for a reliable MCMC run.
+#' @param warning.loc Location of the warning
+#' @param warning.col Colour of the warning - defaults to red.
 #' @return A plot with two panels showing the MCMC run and the calibrated and modelled ages.
-#' @author Maarten Blaauw, J. Andres Christen
+#' @author Maarten Blaauw
 #' @export
-draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=",", calibrated.ex=.5, calibrated.mirror=FALSE, calibrated.up=TRUE, modelled.ex=0.5, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", simulation=FALSE, simulation.col=grey(0.5), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7)) {
+draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=",", calibrated.ex=.5, calibrated.mirror=FALSE, calibrated.up=TRUE, modelled.ex=0.5, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", simulation=FALSE, simulation.col=grey(0.5), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, warning.loc="bottomleft", warning.col="red") {
   layout(matrix(1:2, ncol=1), heights=heights)
   op <- par(mar=mar.top, mgp=mgp)
 
@@ -246,6 +251,9 @@ draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=
   if(length(ytop.lab) == 0)
     ytop.lab <- "energy"
   plot(-1*energy, type="l", xlab=xtop.lab, ylab=ytop.lab)
+  if(iterations.warning)
+    if(nrow(set$output) < 3e3) # then MCMC run likely not long enough to be reliable
+      legend(warning.loc, legend="short MCMC run - needs more iterations", bty="n", cex=.8, text.col=warning.col)
 
   op <- par(mar=mar.bottom)
   draw.dates(dets[,2], dets[,3], dets[,4], dets[,5], ex=calibrated.ex, mirror=calibrated.mirror, up=calibrated.up, col=calibrated.col, border=calibrated.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=TRUE, cal.lab=xbottom.lab, y.lab=ybottom.lab)

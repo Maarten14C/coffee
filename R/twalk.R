@@ -594,88 +594,67 @@ GetAutoCov <- function( dt, lags)
 }
 
 
-##### A much better, although slower, way to calculate the
-##### Integrated Autocorrelation Time (no plots though)
-IAT <- function( info, par=0, from=1, to=info$Tr) {
 
-	##-lag/log(GetAutoCorr( info, lag, par=par, from=from, to=to)) 
-	
-	
-	#### we get the desired time series, the parameter and the from - to selection
-	if (par>0) {
-		if (info$dim > 1)
-			dt <-  info$output[from:to, par]
-		else
-			dt <-  info$output[from:to]
-	}
-	else
-		dt <-  info$Us[from:to] 
+#' @name IAT
+#' @title calculate the Tntegrated Autocorrelation Time
+#' @description Calculate the Tntegrated Autocorrelation Time, which gives the proposed value for thinning. E.g., if the IAT is 80, it is good to thin the MCMC run by storing only every 80 iterations. This method is slower than GetAutoCov, but much better.
+#' @param set This option reads the 'info' variable, which contains the data and the model output.
+#' @param par The parameter to test. Defaults to 0.
+#' @param from The first of the iterations of the MCMC run to check. Defaults to the first one.
+#' @param to The last of the iterations of the MCMC run to check. Defaults to the last one.
+#' @return The IAT value
+#' @author Andres Christen
+#' @export
+IAT <- function(set, par=0, from=1, to) {
+  ## -lag/log(GetAutoCorr( info, lag, par=par, from=from, to=to))
+  ## we get the desired time series, the parameter and the from - to selection
+  if(par>0) {
+    if(set$dim > 1)
+      dt <- set$output[from:to, par] else
+        dt <- set$output[from:to]
+  } else
+    dt <-  set$Us[from:to]
 
-	n <- to-from 	
-	mu <- mean(dt)  ### with its mean and variance
-	s2 <- var(dt) 
-	
-	### The maximum lag is half the sample size
-	maxlag <- max( 3, floor(n/2)) 
-	
-	#### The gammas are sums of two consecutive autocovariances
-	Ga <- rep(0,2)  ## two consecutive gammas
-	
-	lg <- 0 
-	Ga[1] <- s2  #sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n 
-	lg <- 1 
-	Ga[1] <- Ga[1] + sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n 
-	
-	m <- 1 
-	lg <- 2*m 
-	Ga[2] <- sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/(n-lg) 
-	lg <- 2*m+1 
-	Ga[2] <- Ga[2] + sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/(n-lg) 
+  n <- to-from
+  mu <- mean(dt)  ### with its mean and variance
+  s2 <- var(dt)
 
-	IAT <- Ga[1]/s2  ### Add the autocorrelations
-	
-	
-	### RULE: while Gamma stays positive and decreasing
-	while  ((Ga[2] > 0.0) & (Ga[2] < Ga[1])) {
-		m <- m+1 
-		if (2*m+1 > maxlag) {
-			cat("Not enough data, maxlag=", maxlag, "\n") 
-			break 
-		}
-		Ga[1] <- Ga[2] 
-		
-		lg <- 2*m 
-		Ga[2] <- sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n 
-		lg <- 2*m+1 
-		Ga[2] <- Ga[2] + sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n 
-		
-		IAT <- IAT + Ga[1]/s2 
-	}
-	 
-	IAT <- -1 + 2*IAT   ##Calculates the IAT from the gammas
-	
-	#cat("IAT: IAT=", IAT, ", last lag=", 2*m+1, ", last Gamma=", Ga[1], "\n") 
+  ### The maximum lag is half the sample size
+  maxlag <- max( 3, floor(n/2))
 
-	IAT 
-	
+  #### The gammas are sums of two consecutive autocovariances
+  Ga <- rep(0,2)  ## two consecutive gammas
+
+  lg <- 0
+  Ga[1] <- s2  #sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n
+  lg <- 1
+  Ga[1] <- Ga[1] + sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n
+
+  m <- 1
+  lg <- 2*m
+  Ga[2] <- sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/(n-lg)
+  lg <- 2*m+1
+  Ga[2] <- Ga[2] + sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/(n-lg)
+
+  IAT <- Ga[1]/s2  ### Add the autocorrelations
+
+  ### RULE: while Gamma stays positive and decreasing
+  while((Ga[2] > 0.0) & (Ga[2] < Ga[1])) {
+    m <- m+1
+    if(2*m+1 > maxlag) {
+      message("Not enough data, maxlag=", maxlag, "\n")
+      break
+    }
+    Ga[1] <- Ga[2]
+
+    lg <- 2*m
+    Ga[2] <- sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n
+    lg <- 2*m+1
+    Ga[2] <- Ga[2] + sum( (dt[1:(n-lg)]-mu)*(dt[(lg+1):n]-mu) )/n
+
+    IAT <- IAT + Ga[1]/s2
+  }
+
+  IAT <- -1 + 2*IAT   ##Calculates the IAT from the gammas
+  return(IAT)
 }
-	
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-

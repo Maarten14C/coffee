@@ -13,6 +13,10 @@ rings()
 
 strat()
 
+Note that several R packages exist to run and/or extract results from OxCal (see OxcAAR and https://github.com/gavinsimpson/roxcal).
+However, coffee is meant as a stand-alone package that doesn't rely on having OxCal installed.
+Additionally, the data files of coffee are meant to be more easily readable and writable by humans.
+
 References
 Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity 65, 808-821.
 
