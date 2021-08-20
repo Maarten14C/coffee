@@ -4,7 +4,9 @@
 * rhub
 
 ## R CMD check results
-There were no ERRORs, NOTEs or WARNINGs.
+There were no ERRORs or WARNINGs.
+
+There was one NOTE about a possibly misspelled author name (Nicholls). This is the correct spelling.
 
 This is a resubmission, with the following corrections as kindly suggested by Julia Haider:
 
