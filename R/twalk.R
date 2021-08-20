@@ -2,13 +2,13 @@
 ####  see http://www.cimat.mx/~jac/twalk/
 ####  Author and copyright holder J. Andres Christen
 
-### this version adapted from the Rtwalk CRAN package version 1.8.0 (2015-09-18).
+### this version adapted from the Rtwalk CRAN package version 1.8.0 (2015-09-18), which was released under the GPL-3 license. Instances of 'cat' were replaced with 'message' and txtProgressBar has been added.
 
 ###############################################################
 #### Some auxiliary functions and constants:
 
-IntProd <- function(x) { sum(x*x)  } ## square of the norm.
-DotProd <- function( x, y) { sum( x*y )  }  ##dot product
+IntProd <- function(x) { sum(x*x)  } ## square of the norm
+DotProd <- function( x, y) { sum( x*y )  } ## dot product
 
 
 
@@ -146,7 +146,7 @@ Runtwalk <- function( Tr, dim = length(x0), Obj, Supp, x0, xp0, PlotObj=FALSE, P
 		flush(stdout())   
 		if (is.function(PlotObj))
 		{
-			cat("\nInitializing graphics.") 	
+			message("\nInitializing graphics.")
 			PlotObj(add=add) 
 			Plpoints <- TRUE 
 			PlotLogPost <- FALSE
@@ -156,13 +156,13 @@ Runtwalk <- function( Tr, dim = length(x0), Obj, Supp, x0, xp0, PlotObj=FALSE, P
 	}
 	else
 	{
-		cat(paste("Initial values out of support,\n  x=", x,"\n xp=", xp)) 
+		message(paste("Initial values out of support,\n  x=", x,"\n xp=", xp))
 		Tr <- 0 
 	}
 	
 	if (any(abs(x0 -xp0) <= 0))
 	{
-		cat(paste("Not all entries of initial values different,\n  x=", x,"\n xp=", xp)) 
+		message(paste("Not all entries of initial values different,\n  x=", x,"\n xp=", xp))
 		
 		Tr <- 0 
 	}
@@ -459,7 +459,7 @@ OneMove <- function( dim, Obj, Supp, x, U, xp, Up,
 
 		if (is.nan(A))  #### debugging line
 		{
-			cat("Rtwalk: ERROR, in evaluating the objective.  Value returned by objective function:", propU)
+			message("Rtwalk: ERROR, in evaluating the objective.  Value returned by objective function:", propU)
 		}
 		
 		list( y=y, propU=propU, yp=yp, propUp=propUp, A=A, funh=funh, nphi=nphi)		
@@ -520,13 +520,13 @@ Ana <- function(info, from=1, to=info$Tr, par=0, file="")
 	itmap = which(-info$Us == max(-info$Us))[1] 
 	
 	
-	cat( "Ratio of moved coordinates per it=\n",
+	message( "Ratio of moved coordinates per it=\n",
 		 accrt[1], accrt[2], accrt[3], accrt[4],
 		 "\ndim=", info$dim, "AcceptanceRatio=", info$acc/info$Tr,
 		"MAPlogPost=", -info$Us[itmap], "IAT=", Tint, "IAT/dim=", Tint/info$dim,"\n\n") 
 
 	if (file != "")
-	 cat(file=file, info$dim, 
+	 message(file=file, info$dim,
 		 accrt[1], accrt[2], accrt[3], accrt[4], info$acc/info$Tr,
 		-info$Us[itmap], Tint/info$dim,"\n") 
 	
@@ -553,7 +553,7 @@ TS <- function(info, pars=1:(info$dim), from=1, to=info$Tr, prime=FALSE)
 				plot(as.ts(as.matrix(info$outputp[sel, pars])), main="xp") 
 	}
 	else
-		cat("Cannot print time series for more than 10 parameters, select a subset with arg. pars\n\n") 
+		message("Cannot print time series for more than 10 parameters, select a subset with arg. pars\n\n")
 	
 }
 

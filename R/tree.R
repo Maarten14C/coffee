@@ -189,7 +189,9 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
       if(plot.cc || plot.dists)
         layout(1)
 
-  op <- par(mar=mar.1, mgp=mgp)
+  oldpar <- par(no.readonly=TRUE)
+  on.exit(par(oldpar))
+  par(mar=mar.1, mgp=mgp)
     xaxt <- ifelse(BCAD, "n", "s")
     if(length(x1.lab) == 0)
       x1.lab <- ""
@@ -225,7 +227,7 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
 
     if(plot.cc) {
       if(plot.dists) # then plotting both
-        op <- par(mar=mar.2)
+        par(mar=mar.2)
       plot(best.age+dat[,4], dat[,2], pch=20, col=date.col, xlab=x2.lab, ylab=y2.lab, xlim=cal.lim, ylim=C14.lim, bty="l", yaxs="i", xaxt=xaxt)
       if(BCAD)
         axis(1, pretty(cal.lim), 1950 - pretty(cal.lim))  

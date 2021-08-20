@@ -233,7 +233,9 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 #' @export
 draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=",", calibrated.ex=.5, calibrated.mirror=FALSE, calibrated.up=TRUE, modelled.ex=0.5, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", simulation=FALSE, simulation.col=grey(0.5), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, warning.loc="bottomleft", warning.col="red") {
   layout(matrix(1:2, ncol=1), heights=heights)
-  op <- par(mar=mar.top, mgp=mgp)
+  oldpar <- par(no.readonly=TRUE)
+  on.exit(par(oldpar))
+  par(mar=mar.top, mgp=mgp)
 
   # read the data and model output
   if(length(set) == 0) {
@@ -255,7 +257,7 @@ draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=
     if(nrow(set$output) < 3e3) # then MCMC run likely not long enough to be reliable
       legend(warning.loc, legend="short MCMC run - needs more iterations", bty="n", cex=.8, text.col=warning.col)
 
-  op <- par(mar=mar.bottom)
+  par(mar=mar.bottom)
   draw.dates(dets[,2], dets[,3], dets[,4], dets[,5], ex=calibrated.ex, mirror=calibrated.mirror, up=calibrated.up, col=calibrated.col, border=calibrated.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=TRUE, cal.lab=xbottom.lab, y.lab=ybottom.lab)
 
   maxdens <- 0
@@ -284,14 +286,7 @@ draw.strat <- function(name="mystrat", set=get('info'), strat.dir="strats", sep=
   }
    set$hpds <- hpds
    
-#   assign_to_global <- function(pos=1){
-#     assign("info", set, envir=as.environment(pos) )
-#   }
    assign_to_global("info", set)
-#   pos <- 1
-#   envir = as.environment(pos)
-#   assign("info", info, envir = envir)
-   #assign("info", info, envir=as.environment(1))
 }
 
 
