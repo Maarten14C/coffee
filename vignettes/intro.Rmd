@@ -52,7 +52,7 @@ Note that the above model uses a million iterations and took around 7 minutes to
 ```{r, eval=FALSE, fig.width=4, fig.asp=1.3}
 sim.strat()
 strat(burnin=0, thinning=1, its=2000, init.ages=seq(3000, 4000, length=5))
-````
+```
 
 ![output graph of a strat simulation with an overly short MCMC run](./strat_short.png)
 
