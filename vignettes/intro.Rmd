@@ -166,6 +166,8 @@ strat("undated_example") # will need a longer run for reliable results (the exam
 Alternatively, just run your site as usual, and after the run model the ages between two of the dated levels (Fig. 6 below; for each iteration this will model random years that fit between the ages of the dates below and above it):
 
 ```{r, fig.width=4, fig.asp=1.3}
+sim.strat(n=5)
+strat(its=100, burnin=0, thinning=1, internal.thinning=1) # much too short
 undated_1.5 <- ages.undated(1.5) # positioned between positions 1 and 2
 summary(undated_1.5)
 ```

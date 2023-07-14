@@ -7,6 +7,7 @@
 draw.strat(
   name = "mystrat",
   set = get("info"),
+  y.scale = "positions",
   strat.dir = "strats",
   cc.dir = c(),
   sep = ",",
@@ -28,6 +29,8 @@ draw.strat(
   modelled.col = rgb(0, 0, 0, 0.5),
   modelled.border = rgb(0, 0, 0, 0.5),
   range.col = "black",
+  block.col = rgb(0, 0, 1, 0.05),
+  gap.col = "blue",
   simulation = FALSE,
   simulation.col = grey(0.5),
   pos.lim = c(),
@@ -46,9 +49,15 @@ draw.strat(
 
 \item{set}{This option reads the 'info' variable, which contains the data and the model output.}
 
+\item{y.scale}{The scale of the vertical axis of the main plot. This can be the positions of the dated levels (`positions`) or their position order (`dates`).}
+
 \item{strat.dir}{The directory where the folders of the individual stratigraphies live. Defaults to \code{start.dir="strats"}.}
 
+\item{cc.dir}{Directory of calibration curve. Keep empty for the default value.}
+
 \item{sep}{Separator for the fields in the .csv file. Defaults to a comma.}
+
+\item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
 
 \item{calibrated.ex}{Exaggeration of the heights of the calibrated distributions. Defaults to 0.5. Note that more precise dates peak higher than dates with lower precision.}
 
@@ -84,9 +93,17 @@ draw.strat(
 
 \item{range.col}{Colour of the hpd ranges. Defaults to \code{"black"}.}
 
+\item{block.col}{Colour of the field indicating unordered dates within a 'block'. Defaults to light-blue, \code{rgb(0,0,1,.05)}.}
+
+\item{gap.col}{Colour of the diagonal lines and parameters of any gaps}
+
 \item{simulation}{Whether or not the data are part of a simulated stratigraphy.}
 
 \item{simulation.col}{If the data are part of a simulated stratigraphy, the 'true' ages can also be plotted.}
+
+\item{pos.lim}{Limit of the main y-axis.}
+
+\item{age.lim}{Limit of the main x-axis.}
 
 \item{mgp}{Axis text margins (where should titles, labels and tick marks be plotted). Defaults to \code{mgp=c(1.7, .7, .0)}.}
 
@@ -106,7 +123,7 @@ draw.strat(
 A plot with two panels showing the MCMC run and the calibrated and modelled ages.
 }
 \description{
-A plot with two panels. The top panel shows the MCMC output. The bottom panel shows the individually calibrated dates (in downward light gray) as well as the modelled ages constrained by chronological ordering (upward dark-grey) and lines with the hpd ranges (black).
+A plot with two panels. The top panel shows the MCMC output. The bottom panel shows the individually calibrated dates (in downward light gray) as well as the modelled ages constrained by chronological ordering (upward dark-grey) and lines with the hpd ranges (black). Any similarity with swimming elephants or island chains is coincidental.
 }
 \author{
 Maarten Blaauw

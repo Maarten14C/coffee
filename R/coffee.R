@@ -3,7 +3,6 @@
 #'
 #' Note that several R packages exist to run and/or extract results from OxCal (see OxcAAR and https://github.com/gavinsimpson/roxcal).
 #' However, coffee is meant as a stand-alone package that doesn't rely on having OxCal installed. Additionally, the data files of coffee are meant to be more easily readable and writable by humans.
-#' @importFrom data.table fread fwrite
 #'
 #' References
 #' Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity 65, 808-821.
@@ -14,9 +13,10 @@
 #' @docType package
 #' @author Maarten Blaauw <maarten.blaauw@qub.ac.uk> J. Andres Christen <jac@cimat.mx>
 #' @importFrom grDevices dev.cur dev.off pdf dev.copy2pdf grey rgb dev.list extendrange
-#' @importFrom graphics abline box curve hist image layout legend lines par plot points polygon segments rect axis mtext
-#' @importFrom stats approx dbeta density dgamma dnorm dunif lm quantile rnorm weighted.mean coef median cor runif var as.ts
+#' @importFrom graphics abline box curve hist image layout legend lines par plot points polygon segments rect axis mtext text
+#' @importFrom stats approx dbeta density dgamma dnorm dunif lm quantile rnorm weighted.mean coef median cor runif var as.ts na.omit
 #' @importFrom utils read.csv read.table write.table packageName txtProgressBar setTxtProgressBar
+#' @importFrom data.table fread fwrite
 #' @import rintcal
 #' @name coffee
 NULL
@@ -43,7 +43,7 @@ assign_to_global <- function(key, val, pos=1) {
 }
 
 
-assign_dir <- function(umbrella, name, option.name, ask=TRUE, talk=TRUE) {
+assign_dir <- function(umbrella, name, option.name, ask=FALSE, talk=TRUE) {
   # first check if the umbrella folder exists already. If it doesn't, ask for permission to create it
   if(!dir.exists(umbrella)) {
     if(ask) {

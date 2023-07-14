@@ -1,18 +1,7 @@
-# updated version, which reads the .csv file as:
-# the fourth column gives the position. Can be several with the same number - these are then not modelled as ordered between themselves, but as ordered compare to those with higher/lower position numbers
-# if cc=0,1,2,3,4 then considered as dates as usual (we assume no 210Pb data)
-# cc=10 gives an undated depth, for which the age has to be modelled (lying inbetween the dates above and below its position)
-# cc=11 gives an exact time gap under the age field
-# cc=12 gives a normal distribution for the time gap
-# cc=13 gives a gamma distribution for the time gap (can approximate e.g. exponential distributions)
-# cc=14 gives a uniform distribution for the time gap (not sure when that would be useful though)
-# does not model discrete gaps (apart from exact time gap). This owing to MCMC limitations.
 
 #' @name strat
 #' @title Model chronologically ordered dates
 #' @description Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated positions can be safely assumed to are in chronological order.
-#' @details The calculations are made in a Bayesian framework. For each iteration, it is checked that all modelled age estimates are in chronological order - if not, the iteration is not accepted. See also Buck et al. 1991 and Nicholls & Jones 2001. Other software that enables Bayesian chronological ordering includes Bcal (Buck et al. 1999) and OxCal (Sequence model; Bronk Ramsey 1995).
-#' @description Model the radiocarbon or cal BP ages of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to be in chronological order.
 #' @details Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The amount of scatter, the laboratory error and an offset can also be modelled.
 #' The function reads in a .csv file of a specific format. The first column contains the names of the dates/information, the second column has the age(s) (uncalibrated for radiocarbon dates, as they will be calibrated during the modelling), the third column their errors, the fourth column their position (see below), and the fifth column cc, the calibration curve information. Additional columns for the reservoir effect (delta.R and delta.STD) and the student-t model (t.a and t.b) can be added, much like rbacon .csv files.
 #' The positions of the dates (column 4) should be entered with the topmost, youngest levels first, and then working downward toward the oldest levels. The topmost position gets the lowest number (e.g., 0), and each subsequent entry should have a higher position number to ensure that the levels are ordered in time. Dates in 'blocks' where there is no known age ordering between the dates in the block (but where that block is known to be older than the level above it and younger than the level below it) should all get the same position in column 4.  
@@ -64,7 +53,7 @@
 #'
 #' Nicholls G, Jones M 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics) 50, 503-521.
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=c(), internal.thinning=c(), write.MCMC=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), postbomb=FALSE, BCAD=FALSE, ask=TRUE, talk=TRUE, clean.garbage=TRUE, oldest.age=c(), ...) {	
+strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=c(), internal.thinning=c(), write.MCMC=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, clean.garbage=TRUE, oldest.age=c(), ...) {	
   start.time <- as.numeric(format(Sys.time(), "%s"))
   info <- read.strat(name, strat.dir, sep, normal, delta.R, delta.STD, t.a, t.b, cc)
   assign_to_global("info", info)
@@ -278,7 +267,7 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
   if(length(dat[,5] == 10) > 0)
     y.scale <- "positions"  
 
-  dates <- draw.strat(name, info, BCAD=BCAD, strat.dir=stratdir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
+  dates <- draw.strat(name, info, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
 
   if(length(pos.gaps) > 0)
     for(i in rev(pos.gaps))
@@ -308,14 +297,20 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
 
 
 
-# for now does not work between positions where gaps are modelled
+#' @name ages.undated
+#' @title Model ages between two dated levels
+#' @description Model ages of undated levels, by for each MCMC iteration finding the age of the layer above and of the layer below, and sampling a random age from a uniform distribution between the age estimates of the two ages. 
+#' @param position Position of the to-be-estimated undated layer. Should be larger than the layer above but smaller than the layer below it.
+#' @param set This option reads the 'info' variable, which contains the data and the model output.
+#' @param draw Whether or not to draw the age distribution.
+#' @export
 ages.undated <- function(position, set=get('info'), draw=TRUE) {
   positions <- which(set$dets[,5] %in% 0:4) # dated levels
   above <- max(which(set$dets[positions,4] < position))
   below <- min(which(set$dets[positions,4] > position))
-  ages.above <- info$output[,above]
-  ages.below <- info$output[,below]
-  ages <- runif(1:nrow(info$output), ages.above, ages.below)
+  ages.above <- set$output[,above]
+  ages.below <- set$output[,below]
+  ages <- runif(1:nrow(set$output), ages.above, ages.below)
   if(draw)
 	plot(density(ages), main="", xlab="cal BP", ylab="")  
   return(ages)

@@ -11,8 +11,10 @@ strat(
   burnin = 100,
   thinning = c(),
   internal.thinning = c(),
+  write.MCMC = TRUE,
   init.ages = c(),
   ballpark.method = 2,
+  y.scale = "dates",
   showrun = FALSE,
   sep = ",",
   normal = FALSE,
@@ -24,9 +26,8 @@ strat(
   cc.dir = c(),
   postbomb = FALSE,
   BCAD = FALSE,
-  ask = TRUE,
+  ask = FALSE,
   talk = TRUE,
-  draw = TRUE,
   clean.garbage = TRUE,
   oldest.age = c(),
   ...
@@ -43,9 +44,15 @@ strat(
 
 \item{thinning}{After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependence between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.}
 
-\item{internal.thinning}{Internal. Does thinning.}
+\item{internal.thinning}{Does internal thinning during the MCMC process, storing only every 'internal.thinning' MCMC iterations.}
+
+\item{write.MCMC}{Especially longer runs or sites with many dates can take up lots of memory. For such cases, MCMC iterations are stored in temporary files rather than in memory. Defaults to TRUE.}
 
 \item{init.ages}{By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually, as two rows of values (for x0 and xp0) which have to obey the assumptions (e.g., chronological ordering).}
+
+\item{ballpark.method}{Initial, ballpark values for the initial ages (if not provided by the option `init.ages`). Can be 1 (based on a linear model) or 2 (based on sorted random draws).}
+
+\item{y.scale}{The scale of the vertical axis of the main plot. This can be the positions of the dated levels (`positions`) or their position order (`dates`).}
 
 \item{showrun}{Whether or not to show how the MCMC process is progressing during the run. Defaults to \code{FALSE}.}
 
@@ -67,17 +74,15 @@ strat(
 
 \item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
 
-\item{BCAD}{The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.}
+\item{BCAD}{The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}. Needs more work probably.}
 
 \item{ask}{Whether or not to ask if a folder should be made (if required).}
 
-\item{talk}{Whether or not to provide feedback on folders written into.}
-
-\item{draw}{Whether or not to draw plots.}
+\item{talk}{Whether or not to provide feedback on folders written into and on what is happening.}
 
 \item{clean.garbage}{Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.}
 
-\item{oldest.age}{Oldest expected ages. Defaults to 55e3 which is the current cal BP limit for C-14 dates}
+\item{oldest.age}{Oldest expected ages. Defaults to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, oldest.age is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.}
 
 \item{...}{Options for the plot. See \code{plot.strat}.}
 }
@@ -85,15 +90,14 @@ strat(
 a variable 'info' which contains the dating and modelling information to produce a plot. Also calls the function \code{draw.strat} to produce a plot of the results.
 }
 \description{
-Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to are in chronological order.
-
-Model the radiocarbon or cal BP ages of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to be in chronological order.
+Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated positions can be safely assumed to are in chronological order.
 }
 \details{
-The calculations are made in a Bayesian framework. For each iteration, it is checked that all modelled age estimates are in chronological order - if not, the iteration is not accepted. See also Buck et al. 1991 and Nicholls & Jones 2001. Other software that enables Bayesian chronological ordering includes Bcal (Buck et al. 1999) and OxCal (Sequence model; Bronk Ramsey 1995).
-
 Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The amount of scatter, the laboratory error and an offset can also be modelled.
-The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010). In this process, initial ball-park point estimates for the ages of each dated depth are given, and then modified through many iterations. For each iteration, a random dated depth is chosen and its age changed by just a little nudge, a check is performed to ensure that all age estimates remain in chronological order, and the 'energy' or likelihood of the age estimates is calculated (iterations where all ages fit well within the calibrated distributions receive a higher energy; see \code{l.calib}). 
+The function reads in a .csv file of a specific format. The first column contains the names of the dates/information, the second column has the age(s) (uncalibrated for radiocarbon dates, as they will be calibrated during the modelling), the third column their errors, the fourth column their position (see below), and the fifth column cc, the calibration curve information. Additional columns for the reservoir effect (delta.R and delta.STD) and the student-t model (t.a and t.b) can be added, much like rbacon .csv files.
+The positions of the dates (column 4) should be entered with the topmost, youngest levels first, and then working downward toward the oldest levels. The topmost position gets the lowest number (e.g., 0), and each subsequent entry should have a higher position number to ensure that the levels are ordered in time. Dates in 'blocks' where there is no known age ordering between the dates in the block (but where that block is known to be older than the level above it and younger than the level below it) should all get the same position in column 4.  
+The function does not only deal with dates (radiocarbon or otherwise), but can also model undated levels and a range of gaps between the dated levels. This is done mostly through column 5 in the .csv files, where a 0 is for dates on the cal BP scale, 1 for radiocarbon dates that require calibration with IntCal20, 2 with Marine20, 3 with SHCal20, 4 a custom calibration curve; additional information can be provided by adding entries for undated levels (cc=10), gaps of exactly known length (cc=11), normally distributed gap lengths (cc=12), or gamma distributed gap lengths (cc=13).
+The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010). In this process, initial ball-park point estimates for the ages of each dated depth are given, checked for their chronological ordering (and for the sizes of any gaps) and then modified through many iterations. For each iteration, a random dated depth is chosen and its age changed by just a little nudge, a check is performed to ensure that all age estimates remain in chronological order (and that gap sizes remain obeyed), and the 'energy' or likelihood of the age estimates is calculated (iterations where all ages fit well within the calibrated distributions receive a higher energy; see \code{l.calib}). 
 Then this iteration with the updated group of age estimates is either accepted or rejected. The acceptance probability depends on the iteration's energy; if its energy is higher than that of the previous iteration it is accepted, but if it is lower, it is accepted with a probability proportional to its relative energy. Therefore, over many iterations the process will 'learn' from the data and find high-energy combinations of parameter values that fit with the prior constraints that the ages should be ordered chronologically.
 Because the iterations are based on a process of modifying values of one parameter each iteration, and because some iterations will not be accepted, the MCMC output will often have a large degree of dependence between neighbouring iterations. Therefore, some thinning will have to be done, by storing only one every few iterations (default 20). Also, since the initial ball-park estimates could be quite wrong, the first 100 or so iterations should also be discarded (burnin). 
 It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
@@ -101,7 +105,7 @@ It is thus important to check the time-series of the energy after the run. We do
 \examples{
 \dontrun{
 tmp <- tempdir()
-strat(, strat.dir=tmp)
+strat(, strat.dir=tmp, its=1000, thinning=1, internal.thinning=1)
 }
 }
 \references{

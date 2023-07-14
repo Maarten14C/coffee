@@ -55,7 +55,7 @@ Simulate the dense radiocarbon dating of a tree or other deposit with exactly kn
 }
 \examples{
   treedir <- tempdir()
-  sim.rings("manyrings", age.min=1000, length=400, gaps=10, tree.dir=treedir)
+  sim.rings("manyrings", age.start=1000, length=400, gaps=10, tree.dir=treedir)
   rings("manyrings", tree.dir=treedir)
 }
 \author{

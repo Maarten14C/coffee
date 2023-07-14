@@ -26,6 +26,7 @@
 #' @param modelled.border Colour of the border of the modelled ages. Defaults to semi-transparent dark grey, \code{rgb(0,0,0,0.5}.
 #' @param range.col Colour of the hpd ranges. Defaults to \code{"black"}.
 #' @param block.col Colour of the field indicating unordered dates within a 'block'. Defaults to light-blue, \code{rgb(0,0,1,.05)}.
+#' @param gap.col Colour of the diagonal lines and parameters of any gaps
 #' @param simulation Whether or not the data are part of a simulated stratigraphy.
 #' @param simulation.col If the data are part of a simulated stratigraphy, the 'true' ages can also be plotted.
 #' @param pos.lim Limit of the main y-axis.

@@ -20,7 +20,7 @@
 #' @return A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, the rings (starting with the youngest year and working backward in time), and the calibration curve to be used.
 #' @examples
 #'   treedir <- tempdir()
-#'   sim.rings("manyrings", age.min=1000, length=400, gaps=10, tree.dir=treedir)
+#'   sim.rings("manyrings", age.start=1000, length=400, gaps=10, tree.dir=treedir)
 #'   rings("manyrings", tree.dir=treedir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export

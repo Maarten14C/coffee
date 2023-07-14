@@ -1,7 +1,3 @@
-# internal function
-assign_to_global <- function(x, value, pos=1)
-  assign(x, value, envir=as.environment(pos) )
-
 
 
 
@@ -22,7 +18,7 @@ fastwrite <- function(out, fnam, ...)
 
 # read the dets file of a strat site
 read.strat <- function(name="mystrat", strat.dir="strats", sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1) {
-  stratdir <- assign_dir(strat.dir, name, "strat.dir", ask)
+  stratdir <- assign_dir(strat.dir, name, "strat.dir", ask=FALSE)
   if(name %in% c("block_example", "undated_example"))
 	file.copy(system.file(file.path("extdata", 
       paste0(name, ".csv")), package="coffee"),

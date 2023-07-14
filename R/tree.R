@@ -49,7 +49,7 @@
 #' @export
 rings <- function(name="mytree", tree.dir="trees", sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, ask=TRUE, age.steps=1, cutoff=1e-6, cc=1, postbomb=FALSE, BCAD=FALSE, times=3, talk=TRUE, draw=TRUE, ...) {
 
-  tree.dir <- assign_dir(tree.dir, name, "tree.dir", ask, talk)
+  tree.dir <- assign_dir(tree.dir, name, "tree.dir", ask=FALSE, talk)
   if(name %in% c("mytree", "Ulandryk4")) {
     fileCopy <- system.file(paste0("extdata/", name, ".csv"), package="coffee")
     file.copy(fileCopy, tree.dir, recursive = TRUE, overwrite=FALSE)
