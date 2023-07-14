@@ -6,13 +6,13 @@
 \usage{
 sim.rings(
   name = "mytree",
-  age.min = 100,
+  age.start = 1000,
   length = 400,
   gaps = 20,
   offset = 0,
-  scatter = 2 * error,
-  error = 0.02,
-  min.error = 10,
+  scatter = 1.05,
+  error = 0.03,
+  min.error = 15,
   tree.dir = "trees",
   sep = ",",
   cc = 1,
@@ -23,7 +23,7 @@ sim.rings(
 \arguments{
 \item{name}{Name of the simulated tree-ring set. Defaults to \code{"mytree"}.}
 
-\item{age.min}{Minimum age of the simulation.}
+\item{age.start}{Starting age of the simulated tree.}
 
 \item{length}{Length of the sequence (if gaps are given as constant). Could be set at e.g 400 for an oak, but many trees will not live as long so shorter sequences could also make sense.}
 
@@ -48,7 +48,7 @@ sim.rings(
 \item{ask}{Ask if a folder may be made and files written into it}
 }
 \value{
-A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, the rings (starting with year 0 and working backward in time), and the calibration curve to be used.
+A file containing 5 columns: the simulated calendar ages, the radiocarbon ages, their errors, the rings (starting with the youngest year and working backward in time), and the calibration curve to be used.
 }
 \description{
 Simulate the dense radiocarbon dating of a tree or other deposit with exactly known yearly rings, and thus with gaps of exactly known age. The radiocarbon dates are assumed to have a degree of lab error and scatter. A (constant) offset can also be modelled.

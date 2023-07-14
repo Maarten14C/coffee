@@ -20,7 +20,7 @@ l.before <- function(x, y) # assuming cal BP, == returns 0
 
 
 # calibrate radiocarbon dates
-l.calib <- function(x, y, er, cc=IntCal::ccurve(1,FALSE), normal=FALSE, t.a=3, t.b=4) {
+l.calib <- function(x, y, er, cc=rintcal::ccurve(1,FALSE), normal=FALSE, t.a=3, t.b=4) {
   cc.x <- approx(cc[,1], cc[,2], x)$y
   cc.er <- approx(cc[,1], cc[,3], x)$y
   if(normal)

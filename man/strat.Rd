@@ -10,21 +10,25 @@ strat(
   its = 50000,
   burnin = 100,
   thinning = c(),
+  internal.thinning = c(),
   init.ages = c(),
-  span = 5000,
+  ballpark.method = 2,
   showrun = FALSE,
   sep = ",",
-  normal = TRUE,
+  normal = FALSE,
   delta.R = 0,
   delta.STD = 0,
   t.a = 3,
   t.b = 4,
   cc = 1,
+  cc.dir = c(),
   postbomb = FALSE,
   BCAD = FALSE,
   ask = TRUE,
   talk = TRUE,
   draw = TRUE,
+  clean.garbage = TRUE,
+  oldest.age = c(),
   ...
 )
 }
@@ -39,9 +43,9 @@ strat(
 
 \item{thinning}{After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependence between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.}
 
-\item{init.ages}{By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually.}
+\item{internal.thinning}{Internal. Does thinning.}
 
-\item{span}{Extent by which the uniform prior should expand beyond the youngest and oldest initial age estimates. Defaults to \code{span=5000}.}
+\item{init.ages}{By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually, as two rows of values (for x0 and xp0) which have to obey the assumptions (e.g., chronological ordering).}
 
 \item{showrun}{Whether or not to show how the MCMC process is progressing during the run. Defaults to \code{FALSE}.}
 
@@ -59,6 +63,8 @@ strat(
 
 \item{cc}{Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).}
 
+\item{cc.dir}{Directory of calibration curve. Keep empty for the default value.}
+
 \item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
 
 \item{BCAD}{The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.}
@@ -68,6 +74,10 @@ strat(
 \item{talk}{Whether or not to provide feedback on folders written into.}
 
 \item{draw}{Whether or not to draw plots.}
+
+\item{clean.garbage}{Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.}
+
+\item{oldest.age}{Oldest expected ages. Defaults to 55e3 which is the current cal BP limit for C-14 dates}
 
 \item{...}{Options for the plot. See \code{plot.strat}.}
 }

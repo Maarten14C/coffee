@@ -6,7 +6,6 @@
 \usage{
 rings(
   name = "mytree",
-  ring = 0,
   tree.dir = "trees",
   sep = ",",
   normal = FALSE,
@@ -28,8 +27,6 @@ rings(
 }
 \arguments{
 \item{name}{name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{treedir} folder. Default names include Ulandryk4 and mytree.}
-
-\item{ring}{The ring for which the age estimate should be calculated. Defaults to the youngest ring, 0.}
 
 \item{tree.dir}{The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.}
 
@@ -75,13 +72,14 @@ Produce a Bayesian wiggle-match date of a tree dated with multiple C-14 dates at
 The calculations are based on Bwigg (Christen and Litton 1995; Christen 2003). 
 In OxCal, this is called a D_Sequence (Bronk Ramsey et al. 2001).
 
-Since only one parameter has to be estimated, a MCMC approach is not necessary nor recommended, and results are calculated analytically.
+Since only one parameter has to be estimated (the age of the earliest, innermost ring),
+a MCMC approach is not necessary nor recommended, and results are calculated analytically.
 
-Files for tree wiggle-matching should contain the following columns: lab ID, C-14 age, error, ring, cc. Rings are counted from the outward ring (0 year old) inwards. cc should either be 1 (IntCal20; northern hemisphere #' terrestrial, 2 (Marine20, though I've never heard of marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve). The tree files should be in plain-text and fields separated by commas.
+Files for tree wiggle-matching should contain the following columns: lab ID, C-14 age, error, ring, cc. Rings are counted from the inner ring (0 year old) outwards, so, forward in time. cc should either be 1 (IntCal20; northern hemisphere #' terrestrial, 2 (Marine20, though I've never heard of marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve). The tree files should be in plain-text and fields separated by commas.
 
 Default tree files include Ulandryk4 (Christen 2003) and a simulated tree (see \code{sim.tree()}).
 
-By default, the data are calibrated assuming a student-t distribution, which has wider tails than the normal distribution and deals well with outliers ().
+By default, the data are calibrated assuming a student-t distribution, which has wider tails than the normal distribution and deals well with outliers.
 }
 \examples{
   rings("Ulandryk4", tree.dir=tempdir())

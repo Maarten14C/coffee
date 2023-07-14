@@ -1,3 +1,7 @@
+# coffee 0.2.0
+* now links to the rintcal package (not IntCal any more)
+
+
 # coffee 0.1.1
 
 * added references to the methods to the DESCRIPTION file

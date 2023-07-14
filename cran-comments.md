@@ -6,10 +6,4 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
-There was one NOTE about a possibly misspelled author name (Nicholls). This is the correct spelling.
 
-This is a resubmission, with the following corrections as kindly suggested by Julia Haider:
-
-* references to the methods have been added to the description field of the DESCRIPTION file
-* all instances of cat() were replaced by message()
-* the original par settings are now saved if the function is exited, using oldpar <- par(no.readonly=TRUE); on.exit(par(oldpar))
