@@ -1,5 +1,5 @@
 # coffee 0.2.0
-* now links to the rintcal package (no longer to IntCal)
+* now links to the rintcal package (renamed from IntCal)
 * the strat function now handles undated levels, blocks of dates, and different types of gaps (of exactly known length, or according to a normal or gamma distribution)
 
 # coffee 0.1.1
