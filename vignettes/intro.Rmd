@@ -205,10 +205,6 @@ strat("gaps_example") # will need a longer run for reliable results (the example
 ```
 ![Fig. 6 - output of a strat simulation containing gaps between dated levels; an exact gap between positions 1 and 2 (Ex(200)), a normally distributed one between positions 3 and 4 (N(100,20)), and a gamma distributed one between positions 5 and 6 (Ga(100,2)). Blue diagonal lines indicate the size and nature of the gaps. Note that the modelled (dark grey) distributions of dates 1 and 2 are the exact same shape, but shifted by exactly 200 years. The shapes of the modelled distributions surrounding the normal and gamma gaps show only some similarity. ](./a.png){width=70%}
 
-hi
-
-\includegraphics[]{path/file.png}
-
 For more help, type `?strat`.
 
 [^1]: Christen JA, Litton CD, 1995. A Bayesian approach to wiggle-matching. *Journal of Archaeological Science* 22, 719-725
@@ -219,7 +215,7 @@ For more help, type `?strat`.
 
 [^4]: Hogg et al. 2020. SHCal20 Southern Hemisphere calibration, 0-55,000 years cal BP. *Radiocarbon* 62, 759-778
 
-[^5]: https://cran.r-project.org/web/packages/rbacon/vignettes/foldersfiles.html
+[^5]: please check the vignettes at https://cran.r-project.org/package=rbacon
 
 [^6]: https://en.wikipedia.org/wiki/Spekkoek
 
