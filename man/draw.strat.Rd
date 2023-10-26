@@ -31,6 +31,7 @@ draw.strat(
   range.col = "black",
   block.col = rgb(0, 0, 1, 0.05),
   gap.col = "blue",
+  gap.pos = 1,
   simulation = FALSE,
   simulation.col = grey(0.5),
   pos.lim = c(),
@@ -95,7 +96,9 @@ draw.strat(
 
 \item{block.col}{Colour of the field indicating unordered dates within a 'block'. Defaults to light-blue, \code{rgb(0,0,1,.05)}.}
 
-\item{gap.col}{Colour of the diagonal lines and parameters of any gaps}
+\item{gap.col}{Colour of the diagonal lines and parameters of any gaps.}
+
+\item{gap.pos}{Plotting position of the gap information.}
 
 \item{simulation}{Whether or not the data are part of a simulated stratigraphy.}
 

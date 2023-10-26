@@ -1,3 +1,7 @@
+# coffee 0.2.1
+* updated the vignette
+* added functions scissors and thinner for manipulation of MCMC output
+
 # coffee 0.2.0
 * now links to the rintcal package (renamed from IntCal)
 * the strat function now handles undated levels, blocks of dates, and different types of gaps (of exactly known length, or according to a normal or gamma distribution)

@@ -167,8 +167,9 @@ Alternatively, just run your site as usual, and after the run model the ages bet
 
 ```{r, fig.width=4, fig.asp=1.3}
 sim.strat(n=5)
-strat(its=100, burnin=0, thinning=1, internal.thinning=1) # much too short
-undated_1.5 <- ages.undated(1.5) # positioned between positions 1 and 2
+strat(its=100, burnin=0, thinning=1, internal.thinning=1, show.progress=FALSE) # much too short
+layout(1) # new plot
+undated_1.5 <- ages.undated(1.5) # ages between positions 1 and 2
 summary(undated_1.5)
 ```
   
@@ -200,10 +201,10 @@ strat("gaps_example") # will need a longer run for reliable results (the example
 # Done running...
 # Removed a burn-in of 100
 # Thinning the MCMC by storing every 15 iterations
-# Mean overlap between calibrated and modelled dates 52.23%, ranging from 23% (date 6) to 70.4% (date 3)
+# Mean overlap between calibrated and modelled dates 53.29%, ranging from 22% (date 6) to 73.8% (date 3)
 # Run took 15.15 minutes
 ```
-![Fig. 6 - output of a strat simulation containing gaps between dated levels; an exact gap between positions 1 and 2 (Ex(200)), a normally distributed one between positions 3 and 4 (N(100,20)), and a gamma distributed one between positions 5 and 6 (Ga(100,2)). Blue diagonal lines indicate the size and nature of the gaps. Note that the modelled (dark grey) distributions of dates 1 and 2 are the exact same shape, but shifted by exactly 200 years. The shapes of the modelled distributions surrounding the normal and gamma gaps show only some similarity. ](./a.png){width=70%}
+![Fig. 6 - output of a strat simulation containing gaps between dated levels; an exact gap between positions 1 and 2 (Ex(200)), a normally distributed one between positions 3 and 4 (N(100,20)), and a gamma distributed one between positions 5 and 6 (Ga(100,2)). Blue diagonal lines indicate the size and nature of the gaps. Note that the modelled (dark grey) distributions of dates 1 and 2 are the exact same shape, but shifted by exactly 200 years. The shapes of the modelled distributions surrounding the normal and gamma gaps show only some similarity. ](./strat_gaps.png){width=70%}
 
 For more help, type `?strat`.
 

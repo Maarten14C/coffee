@@ -26,7 +26,8 @@
 #' @param modelled.border Colour of the border of the modelled ages. Defaults to semi-transparent dark grey, \code{rgb(0,0,0,0.5}.
 #' @param range.col Colour of the hpd ranges. Defaults to \code{"black"}.
 #' @param block.col Colour of the field indicating unordered dates within a 'block'. Defaults to light-blue, \code{rgb(0,0,1,.05)}.
-#' @param gap.col Colour of the diagonal lines and parameters of any gaps
+#' @param gap.col Colour of the diagonal lines and parameters of any gaps.
+#' @param gap.pos Plotting position of the gap information.
 #' @param simulation Whether or not the data are part of a simulated stratigraphy.
 #' @param simulation.col If the data are part of a simulated stratigraphy, the 'true' ages can also be plotted.
 #' @param pos.lim Limit of the main y-axis.
@@ -41,7 +42,7 @@
 #' @return A plot with two panels showing the MCMC run and the calibrated and modelled ages.
 #' @author Maarten Blaauw
 #' @export
-draw.strat <- function(name="mystrat", set=get('info'), y.scale="positions", strat.dir="strats", cc.dir=c(), sep=",", postbomb=FALSE, calibrated.ex=.5, calibrated.mirror=FALSE, calibrated.up=TRUE, modelled.ex=0.5, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", block.col=rgb(0,0,1,.05), gap.col="blue", simulation=FALSE, simulation.col=grey(0.5), pos.lim=c(), age.lim=c(), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, warning.loc="bottomleft", warning.col="red") {
+draw.strat <- function(name="mystrat", set=get('info'), structure=get('struc'), y.scale="positions", strat.dir="strats", cc.dir=c(), sep=",", postbomb=FALSE, calibrated.ex=.5, calibrated.mirror=FALSE, calibrated.up=TRUE, modelled.ex=0.5, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", block.col=rgb(0,0,1,.05), gap.col="blue", gap.pos=1, simulation=FALSE, simulation.col=grey(0.5), pos.lim=c(), age.lim=c(), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, warning.loc="bottomleft", warning.col="red") {
   layout(matrix(1:2, ncol=1), heights=heights)
   oldpar <- par(no.readonly = TRUE)
   #on.exit(par(oldpar))
@@ -70,32 +71,28 @@ draw.strat <- function(name="mystrat", set=get('info'), y.scale="positions", str
 
   dates <- which(dets[,5] %in% 0:4)
   ages.positions <- dets[which(dets[,5] %in% c(0:4,10)),4]
+  if(y.scale[1] == "dates")
+   ages.positions <- 1:length(ages.positions)
 
   if(y.scale[1] == "positions")
-	y.scale <- dets[dates,4]
+    y.scale <- dets[dates,4]
   if(y.scale[1] == "dates")
-	y.scale <- 1:length(dates)   
+    y.scale <- 1:length(dates)
   if(length(pos.lim) == 0)
-	pos.lim <- extendrange(y.scale, f=0.1)  
+    pos.lim <- extendrange(y.scale, f=0.1)
 
   par(mar=mar.bottom)
   dates <- draw.dates(dets[dates,2], dets[dates,3], y.scale, dets[dates,5], cc.dir=cc.dir, postbomb=postbomb, ex=calibrated.ex, mirror=calibrated.mirror, up=calibrated.up, col=calibrated.col, border=calibrated.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=TRUE, cal.lab=xbottom.lab, d.lab=ybottom.lab, age.lim=age.lim, d.lim=pos.lim)
 
-  if(any(diff(dets[,4]) == 0)) { # then there are blocks of dates 
-    block <- rep(0, nrow(dets))  
-    k <- 1
-    for(i in 2:(nrow(dets)-1)) {
-      if((dets[i,4] == dets[i-1,4]) || (dets[i,4] == dets[i+1,4])) { # we're in a block	
-        block[i] <- k
-        if(dets[i,4] < dets[i+1,4]) # we're at the end of the block
-          k <- k+1
-	  }
-	}
-    above <- which(diff(block) > 0)
-	below <- which(diff(block) < 0) + 1
-	y.above <- mean(y.scale[(above+1):above])
-	y.below <- mean(y.scale[(below-1):below])
-	rect(min(.1*dets[,2],-9e9), y.above, max(2*dets[,2], 9e9), y.below, col=block.col, border=NA)
+  if(info$struc$has.blocks) {
+    above <- info$struc$above.block
+    below <- info$struc$below.block
+    y.above <- c(); y.below <- c()
+    for(i in 1:length(above)) {
+      y.above[i] <- mean(y.scale[above[i]:(above[i]+1)])
+      y.below[i] <- mean(y.scale[below[i]:(below[i]-1)])
+    }
+    rect(min(.1*dets[,2],-9e6), y.above, max(2*dets[,2], 9e6), y.below, col=block.col, border=NA)
   }
  
   maxdens <- 0
@@ -121,25 +118,30 @@ draw.strat <- function(name="mystrat", set=get('info'), y.scale="positions", str
     if(!is.na(range.col))
       segments(hpds[[i]][,1], ages.positions[i], hpds[[i]][,2], ages.positions[i], col=range.col, lwd=2)
   }
-  
-  pos.dates <- which(dets[,5] %in% c(0:4,10))
-  pos.gaps <- which(dets[,5] > 10)
-  if(length(pos.gaps) > 0) {
-    for(i in pos.gaps) {
-	  above <- max(which(pos.dates < i))
-      below <- min(which(pos.dates > i))
-      age.above <- hpds[[max(which(pos.dates < i))]][2]
-      segments(age.above, dets[pos.dates[above],4], 
-        age.above+dets[i,2], dets[pos.dates[below],4], col=gap.col)
-      if(dets[i,5] == 11)
-	    text(age.above, mean(c(above, below)),
-	      paste0("Ex(", dets[i,2], ")"), cex=0.5, col=gap.col, adj=c(0, .5))
-      if(dets[i,5] == 12)
-        text(age.above, mean(c(above, below)),
-          paste0("N(", dets[i,2], ",", dets[i,3], ")"), cex=0.5, col=gap.col, adj=c(0, .5))
-      if(dets[i,5] == 13)
-        text(age.above, mean(c(above, below)),
-          paste0("Ga(", dets[i,2], ",", dets[i,3], ")"), cex=0.5, col=gap.col, adj=c(0, .5))
+
+  if(structure$has.gaps) {
+    gaps <- structure$gaps
+    for(i in 1:nrow(gaps)) {
+      above <- max(which(structure$p < gaps[i,4]))
+      side <- ifelse(gap.pos==1, 1, 2)
+      if(gap.pos==1) {
+        age.above <- max(hpds[[above]][,-3])
+        age.below <- max(hpds[[above+1]][,-3])
+        } else {
+          age.above <- min(hpds[[above]][,-3])
+          age.below <- min(hpds[[above+1]][,-3])
+        }
+      segments(age.above, dets[above,4],
+        age.above+gaps[i,2], dets[above+1,4], col=gap.col)
+      adj <- ifelse(gap.pos==1, c(1,.5), c(0,.5))
+      xpos <- ifelse(gap.pos==1, age.below, age.above)
+      if(gaps[i,5] == 11)
+        txt <- paste0("Ex(", gaps[i,2], ")") else
+          if(gaps[i,5] == 12)
+            txt <- paste0("N(", gaps[i,2], ",", gaps[i,3], ")") else
+              if(gaps[i,5] == 13)
+                txt <- paste0("Ga(", gaps[i,2], ",", gaps[i,3], ")")
+      text(xpos, mean(c(dets[above,4], dets[above+1,4])), txt, cex=0.5, col=gap.col, adj=adj)
     }
   }
   

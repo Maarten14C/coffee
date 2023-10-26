@@ -100,7 +100,7 @@ G4U <- function( nphi, phi, h, x, xp) {
 ############ PlotObj=FALSE. See examples.R for details.
 ############ 4 kernels: traverse, walk, blow or hop
 ############ MB: removed plot options, now only stores every 'thinning' iterations
-Runtwalk <- function(Tr, Obj, Supp, dat, dim = length(x0), x0=x0, xp0=xp0, at=6, aw=1.5, pphi=min( dim, 4)/dim, F1=0.4918, F2=F1+0.4918, F3=F2+0.0082, thinning=100, cumulative=FALSE, out.fl=c(), energy.fl=c(), ...) {
+Runtwalk <- function(Tr, Obj, Supp, dat, dim = length(x0), x0=x0, xp0=xp0, at=6, aw=1.5, pphi=min( dim, 4)/dim, F1=0.4918, F2=F1+0.4918, F3=F2+0.0082, thinning=100, cumulative=FALSE, out.fl=c(), energy.fl=c(), show.progress=TRUE, ...) {
 
   ## Initial values
   x <- x0
@@ -127,7 +127,8 @@ Runtwalk <- function(Tr, Obj, Supp, dat, dim = length(x0), x0=x0, xp0=xp0, at=6,
   }
 
   every <- ceiling(Tr/thinning) # find how many sub-runs to run
-  pb <- txtProgressBar(min=0, max=Tr, style = 3, char=">")
+  if(show.progress)
+    pb <- txtProgressBar(min=0, max=Tr, style = 3, char=">")
 
   if(length(out.fl) > 0) { # then we'll save the its in files while running
     if(file.exists(out.fl))
@@ -139,8 +140,9 @@ Runtwalk <- function(Tr, Obj, Supp, dat, dim = length(x0), x0=x0, xp0=xp0, at=6,
   acc <- 0
   j <- 0
   for(i in 1:Tr) {
-    if(i %% 100)
-      setTxtProgressBar(pb, i)
+    if(show.progress)
+      if(i %% 100)
+        setTxtProgressBar(pb, i)
     move <- OneMove(dim=dim, Obj=Obj, Supp=Supp, x, U, xp, Up, at=at, aw=aw, pphi=pphi, F1=F1, F2=F2, F3=F3, ...)
     if(runif(1) < move$A) { # proposed iteration accepted
       tmp.recacc <- c(move$funh, move$nphi/dim)

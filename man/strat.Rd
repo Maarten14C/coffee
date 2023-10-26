@@ -28,8 +28,9 @@ strat(
   BCAD = FALSE,
   ask = FALSE,
   talk = TRUE,
+  show.progress = TRUE,
   clean.garbage = TRUE,
-  oldest.age = c(),
+  age.span = c(),
   ...
 )
 }
@@ -78,11 +79,11 @@ strat(
 
 \item{ask}{Whether or not to ask if a folder should be made (if required).}
 
-\item{talk}{Whether or not to provide feedback on folders written into and on what is happening.}
+\item{talk}{Whether or not show the progress of the MCMC run.}
 
 \item{clean.garbage}{Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.}
 
-\item{oldest.age}{Oldest expected ages. Defaults to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, oldest.age is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.}
+\item{age.span}{Expected age span. Defaults to run from the current year in AD to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, age.span is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.}
 
 \item{...}{Options for the plot. See \code{plot.strat}.}
 }

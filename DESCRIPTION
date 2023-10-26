@@ -1,7 +1,7 @@
 Package: coffee
 Type: Package
 Title: Chronological Ordering for Fossils and Environmental Events
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(
   person("Maarten", "Blaauw", email = "maarten.blaauw@qub.ac.uk", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5680-1515")),
       person(given = "Marco A.",

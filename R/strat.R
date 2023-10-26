@@ -16,6 +16,7 @@
 #' @param burnin Amount of iterations to remove at the start of the run. Defaults to \code{100}.
 #' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependence between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.
 #' @param internal.thinning Does internal thinning during the MCMC process, storing only every 'internal.thinning' MCMC iterations.
+#' @param min.its Minimum number of (remaining) iterations, below which a warning is given. Defaults for now to 3,000 iterations.
 #' @param write.MCMC Especially longer runs or sites with many dates can take up lots of memory. For such cases, MCMC iterations are stored in temporary files rather than in memory. Defaults to TRUE. 
 #' @param init.ages By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually, as two rows of values (for x0 and xp0) which have to obey the assumptions (e.g., chronological ordering).
 #' @param ballpark.method Initial, ballpark values for the initial ages (if not provided by the option `init.ages`). Can be 1 (based on a linear model) or 2 (based on sorted random draws).
@@ -33,8 +34,9 @@
 #' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}. Needs more work probably.
 #' @param ask Whether or not to ask if a folder should be made (if required).
 #' @param talk Whether or not to provide feedback on folders written into and on what is happening.
+#' @param talk Whether or not show the progress of the MCMC run.
 #' @param clean.garbage Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.
-#' @param oldest.age Oldest expected ages. Defaults to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, oldest.age is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age. 
+#' @param age.span Expected age span. Defaults to run from the current year in AD to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, age.span is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.
 #' @param ... Options for the plot. See \code{plot.strat}.
 #' @return a variable 'info' which contains the dating and modelling information to produce a plot. Also calls the function \code{draw.strat} to produce a plot of the results.
 #' @examples
@@ -53,53 +55,40 @@
 #'
 #' Nicholls G, Jones M 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics) 50, 503-521.
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=c(), internal.thinning=c(), write.MCMC=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, clean.garbage=TRUE, oldest.age=c(), ...) {	
+strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinning=c(), internal.thinning=c(), min.its=3e3, write.MCMC=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, show.progress=TRUE, clean.garbage=TRUE, age.span=c(), ...) {
   start.time <- as.numeric(format(Sys.time(), "%s"))
   info <- read.strat(name, strat.dir, sep, normal, delta.R, delta.STD, t.a, t.b, cc)
-  assign_to_global("info", info)
   dat <- info$dets
-
-  # set reasonable maximum age based on the dates
-  if(length(oldest.age) == 0) {
-    these <- which(dat[,5] %in% 0:4) # only dates
-    oldest.age <- max(2*(dat[these,2]+dat[these,3]), 55e3) # C14 or cal BP ages
-  }
+  struc <- structure(dat) # find the structure of the data frame. Will be saved into 'info' later on
+  dets <- dat[which(struc$is.age),]
+  gaps <- dat[which(struc$is.gap),]
 
   # sanity checks
-  if(talk) 
+  if(talk)
     if(its > 5e6)
-      message("Very many iterations, I suggest coffee")
+      message("Very many iterations, have some coffee")
   if(length(thinning) > 0)
-    if(thinning < 1)
+    if(thinning < 1 || (round(thinning) != thinning) )
       stop("Thinning has to be at least 1 (and an integer)", call.=FALSE)
   if(length(internal.thinning) == 0)
-	  internal.thinning <- nrow(dat) else
-        if(internal.thinning < 1)
+     internal.thinning <- nrow(dat) else
+        if(internal.thinning < 1 || (round(internal.thinning) != internal.thinning))
           stop("Internal.thinning has to be at least 1 (and an integer)", call.=FALSE)
-  if(burnin < 0)
+  if(burnin < 0 || (round(burnin) != burnin))
     stop("Burnin has to be at least 0 (and an integer)", call.=FALSE)
-  
-  # prepare for later calculations of ages, dates and gaps
-  pos.ages <- which(dat[,5] %in% c(0:4,10)) # dates and undated levels for which age estimates are required
-  pos.dates <- which(dat[,5] %in% 0:4) # only dates
-  pos.gaps <- which(dat[,5] > 10) # exact gaps, or normal, gamma or uniform
-  dets <- dat[pos.ages,]
-  gaps <- c()
-  if(length(pos.gaps) > 0)
-    gaps <- dat[pos.gaps,]
 
-  # sample initial age estimates to seed the MCMC (if init.ages not provided)
-  if(length(init.ages) == 0)
-    init.ages <- ballpark.strat(method=ballpark.method, dat=dets, gaps=gaps, postbomb=postbomb, normal=normal, t.a=t.a, t.b=t.b, cc.dir=cc.dir)
-  x0 <- init.ages[1,]; xp0 <- init.ages[2,]
+  # set reasonable maximum age based on the dates
+  if(length(age.span) == 0) {
+    age.span <- max(2*(dets[,2]+dets[,3]), 55e3) # C14 or cal BP ages
+    age.span <- age.span+(as.numeric(format(Sys.time(), "%Y"))-1950)
+  }
 
   # load any calibration curve(s) we'll need
   ccs <- unique(dets[,5])
   cc.1 <- c(); cc.2 <- c(); cc.3 <- c(); cc.4 <-c()
-  rc <- dets[which(dets[,5] %in% 1:4), 2]
-
+  rc <- dets[which(dets[,5] %in% 1:4), 2] ### ok to not use dat?
   if(length(rc) > 0)
-    if(min(rc) < 0) { # has postbomb dates, which are terrestrial only
+    if(min(rc) < 100) { # has postbomb dates (or close to being postbomb), which are terrestrial only. Check how rintcal's calibrate covers this
       if(1 %in% ccs) # NH
         cc.1 <- rintcal::glue.ccurves(1, postbomb, cc.dir)
       if(3 %in% ccs) # SH
@@ -107,183 +96,167 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
     } else {
         if(1 %in% ccs) # NH
           cc.1 <- rintcal::ccurve(1, FALSE, cc.dir)
-        if(3 %in% ccs) # SH; Marine doesn't have postbomb curves
+        if(3 %in% ccs) # SH
           cc.3 <- rintcal::ccurve(3, FALSE, cc.dir)
       }
-
   if(2 %in% ccs)
     cc.2 <- rintcal::ccurve(2, FALSE, cc.dir)
   if(4 %in% ccs)
     cc.4 <- rintcal::ccurve(4, FALSE, cc.dir)
 
-  # find the calibrated likelihoods
-  calib <- function(y, er, cc.y, cc.er, normal, ta, tb)
-    if(normal)
-      dnorm(y, cc.y, sqrt(er^2 + cc.er^2)) else
-        (tb + ((y-cc.y)^2) / (2*(sqrt(cc.er^2 + er^2)^2))) ^ (-1*(ta+0.5))
+  # prepopulate non-varying values for the energy function
+  dets.cc0 <- which(dets[,5] == 0) 
+  has.cc0 <- ifelse(length(dets.cc0) > 0, TRUE, FALSE)
+  dets.cc1 <- which(dets[,5] == 1)
+  dets.cc2 <- which(dets[,5] == 2)  
+  dets.cc3 <- which(dets[,5] == 3)
+  dets.cc4 <- which(dets[,5] == 4)
 
-  # According to Nicholls & Jones 2002 (Radiocarbon 44), a non-biased function
-  # for the span prior phi, given the data theta, is:
-  # f(phi,theta) = ( 1/ (R - d(phi)) ) ( (1/ (d_phi)^(M-1) ),
-  #   where R = A - P (P<=A) is the total possible span (by default set at oldest.age=55e3 cal BP to AD 2023,
-  #   the current limits of C-14 calibration), M is the number of events (e.g., dates, boundaries), and
-  #   d(phi) = phi_0 - phi_m is the (modelled) span between the boundary ages phi_m and phi_0.
-  # f(phi,theta) = ( 1/ (R - d(phi)) ) ( (1/ (d_phi)^(M-1) )
-  # as log: -log((R - dphi) - ((M-1) * log(dphi))) # (M-1) was M
-  l.span <- function(max.x, min.x, R, M) {
-    if(length(R) == 0)
-      R <- 55e3+(as.numeric(format(Sys.time(), "%Y"))-1950) # C14 'realm'
-    dphi <- abs(max.x - min.x)
-    return(-log((R - dphi) - ((M-1) * log(dphi)))) # M-1 was M
-  }
+  # prepopulate non-varying values for the support function
+  xpos <- unique(dets[,4])
+  is.simple <- min(diff(dets[,4])) > 0 # no blocks
+  thispos <- list(); prevpos <- c(); nextpos <- c()
+  if(!is.simple)
+    for(i in 2:(length(xpos)-1)) {
+      thispos[[i]] <- which(dets[,4] == xpos[i]) # can have multiple depths in a block
+      prevpos[i] <- max(which(dets[,4] == xpos[i-1]))
+      nextpos[i] <- min(which(dets[,4] == xpos[i+1]))
+    }
+
+  # sample initial age estimates to seed the MCMC (if init.ages not provided)
+  if(length(init.ages) == 0)
+    init.ages <- ballpark.strat(method=ballpark.method, dat=dets, gaps=struc$gaps, postbomb=postbomb, normal=normal, t.a=t.a, t.b=t.b, cc.dir=cc.dir)
+  x0 <- init.ages[1,]; xp0 <- init.ages[2,]
+
+  dets <<- dets; x0 <<- x0; info <<- info; struc <<- struc # tmp
 
   # calculates how well the proposed ages x fit with the dates and any constraints on ordering and gaps:
-  energy <- function(x, Dets=dets, curves=ccs, cc1=cc.1, cc2=cc.2, cc3=cc.3, cc4=cc.4, Normal=normal, ta=t.a, tb=t.b) {
+  energy <- function(x, Dets=dets, Normal=normal, ta=t.a, tb=t.b, M=struc$m,
+    curves=ccs, cc1=cc.1, cc2=cc.2, cc3=cc.3, cc4=cc.4, Age.span=age.span,
+    Dets.cc0=dets.cc0, Has.cc0=has.cc0, Dets.cc1=dets.cc1, Dets.cc2=dets.cc2, Dets.cc3=dets.cc3, Dets.cc4=dets.cc4,
+    from=struc$from, to=struc$to, has.blocks=struc$has.blocks, blocks=struc$blocks,
+    within.block=struc$within.block, above.block=struc$above.block, below.block=struc$below.block,
+    has.gaps=struc$has.gaps, has.exact=struc$has.exact, has.normal=struc$has.normal, has.gamma=struc$has.gamma, has.uniform=struc$has.uniform,
+    above.exact=struc$above.exact, above.normal=struc$above.normal, above.gamma=struc$above.gamma, above.uniform=struc$above.uniform,
+    exact.val1=struc$exact.val1, normal.val1=struc$normal.val1, normal.val2=struc$normal.val2, gamma.val1=struc$gamma.val1,
+    gamma.val2=struc$gamma.val2, uniform.val1=struc$uniform.val1, uniform.val2=struc$uniform.val2) {
+
     # calculcate the likelihoods of the dates
-    if(0 %in% curves) { # no calibration necessary
-      these <- which(Dets[,5] == 0)
-      x.cc0 <- calib(Dets[these,2], Dets[these,3], x[these], 0, Normal, ta, tb)
-      x.cc0 <- log(x.cc0)
+    x.cc0 <- 0
+    if(Has.cc0)
+      x.cc0 <- calib(Dets[Dets.cc0,2], Dets[Dets.cc0,3], x[Dets.cc0], 0, Normal, ta, tb)
+    x.cc1 <- cc.energy(1, Dets, Dets.cc1, cc1, x, curves, Normal, ta, tb) # NH
+    x.cc2 <- cc.energy(2, Dets, Dets.cc2, cc2, x, curves, Normal, ta, tb) # Marine
+    x.cc3 <- cc.energy(3, Dets, Dets.cc3, cc3, x, curves, Normal, ta, tb) # SH
+    x.cc4 <- cc.energy(4, Dets, Dets.cc4, cc4, x, curves, Normal, ta, tb) # custom ccurve
+
+    if(has.blocks) { # then check for reversals, and adapt from and to to calculate correct l.span
+	  reversal <- FALSE  
+      for(i in 1:length(blocks)) {
+        thisblock <- within.block[[i]]
+        if (x[above.block] > min(x[thisblock]) || x[below.block] < max(x[thisblock]) ) {
+          reversal <- TRUE
+		  break
+		} else {
+		  o <- order(x[thisblock])
+          to[above.block] <- thisblock[o[1]] # position of youngest age 
+          from[below.block] <- thisblock[o[length(o)]] # ... and of oldest age
+        } 
+	  }
+	  if(reversal)
+        l.x <- -Inf else
+          l.x <- mapply(l.span, x[from], x[to], Age.span, M)
     } else
-        x.cc0 <- 0
+      l.x <- mapply(l.span, x[from], x[to], Age.span, M)
 
-    cc.energy <- function(j, cc, x)
-      if(j %in% curves) { # has dates requiring this calibration curve
-        these <- which(Dets[,5] == j)
-        cc.y <- approx(cc[,1], cc[,2], x[these], rule=2)$y # rule=2 OK? once outside range, will float freely
-        cc.er <- approx(cc[,1], cc[,3], x[these], rule=2)$y
-        this.energy <- calib(Dets[these,2], Dets[these,3], cc.y, cc.er, Normal, ta, tb)
-        return(sum(log(this.energy)))
-      } else # no dates which need this curve
-        return(0)
-
-    x.cc1 <- cc.energy(1, cc1, x) # IntCal20
-    x.cc2 <- cc.energy(2, cc2, x) # Marine20
-    x.cc3 <- cc.energy(3, cc3, x) # SHCal20
-    x.cc4 <- cc.energy(4, cc4, x) # custom ccurve
-
-    # now the contextual likelihoods: order, undated levels, time spans (exact, gamma, normal)
-    # the span of the uppermost, youngest age should be unrestricted within the span prior
-    # It has to be able to move more than the other dates, which will all be expressed as gaps from their younger neighbour
-    l.x <- rep(0, nrow(Dets))
-    l.x[1] <- l.span(max(x, na.rm=TRUE), min(x, na.rm=TRUE), oldest.age, length(x))
-
-    # now the rest, relative to the first one
-    for(i in 2:nrow(Dets)) {
-      younger <- max(1, which(Dets[,4] < Dets[i,4])) # find the oldest date that is younger than x[i]. Deals with dates in 'blocks'
-      older <- min(nrow(Dets), which(Dets[,4] > Dets[i,4])) # youngest age older than x[i]
-
-    #### l.span should consider only 2 or 3 ages here (x_i and boundaries x_min, x_max), not all x
-      if(Dets[i,5] %in% 0:4)
-        l.x[i] <- l.span(x[i], x[younger], oldest.age, 2) else
-          l.x[i] <- l.span(x[younger], x[older], oldest.age, 3) # undated
+    # now recalculate the energy between dates with any provided gap information
+    if(has.gaps) {
+      if(has.exact)
+        l.x[above.exact+1] <- ifelse((x[above.exact+1] - x[above.exact]) == exact.val1, 0, -Inf)
+      if(has.normal)
+        l.x[above.normal+1] <- dnorm(x[above.normal+1] - x[above.normal],
+          normal.val1, normal.val2, log=TRUE)
+      if(has.gamma)
+        l.x[above.gamma+1] <- dnorm(x[above.gamma+1] - x[above.gamma],
+          gamma.val1, gamma.val2, log=TRUE)
+      if(has.uniform)
+        l.x[above.uniform+1] <- dunif(x[above.uniform+1] - x[above.uniform],
+          uniform.val1, uniform.val2, log=TRUE)
     }
 
-    # now fill any gaps, i.e. time spans
-    if(length(pos.gaps) > 0) {
-      for(i in 1:nrow(gaps)) {
-        younger <- max(1, which(Dets[,4] < gaps[i,4]))
-
-        # exactly known gap (e.g., n tree rings); value in column 2
-        if(gaps[i,5] == 11) {
-          gap <- (x[younger+1] - x[younger]) - gaps[i,2]
-          l.x[younger+1] <- log(ifelse(gap == 0, 1, 0))
-        }
-
-        # normally distributed time span; mean in column 2, sdev in column 3
-        if(gaps[i,5] == 12)
-          l.x[younger+1] <- log(dnorm(x[younger+1]-x[younger], gaps[i,2], gaps[i,3]))
-
-        # gamma; mean in column 2, shape in column 3
-        if(gaps[i,5] == 13)
-          l.x[younger+1] <- log(dgamma(x[younger+1]-x[younger], gaps[i,3], gaps[i,3]/gaps[i,2]))
-
-        # uniform; minimum in column 2, maximum in column 3. Perhaps leave out as no known use
-        if(gaps[i,5] == 14)
-          l.x[younger+1] <- log(dunif(x[younger+1]-x[younger], gaps[i,2], gaps[i,3]))
-      }
-    }
-  return(-1 * sum(l.x, x.cc0, x.cc1, x.cc2, x.cc3, x.cc4))
+    return(-1 * sum(l.x, x.cc0, x.cc1, x.cc2, x.cc3, x.cc4))
   }
 
-  # check that the ages x comply with chronological ordering
-    support <- function(ages, position=dets[,4]) {
-    OK <- TRUE
-    ages <- ages[!is.na(ages)]
+  # support function, ascertains ordering of all ages
+  support <- function(ages)
+    return(!min(diff(ages)) < 0)
 
-    if(min(diff(position)) > 0) { # then all in order, conventional case
-      if(min(diff(ages)) < 0)
-        OK <- FALSE
-    } else { # more complicated case
-        xpos <- unique(position)
-        for(i in 2:(length(xpos)-1)) {
-          thispos <- which(position == xpos[i])
-          prevpos <- which(position == xpos[i-1])
-          nextpos <- which(position == xpos[i+1])
-          if(min(ages[thispos]) < max(ages[prevpos]) ||
-            max(ages[thispos]) > min(ages[nextpos])) {
-              OK <- FALSE
-              break # then no need to continue this loop
-          }
-        }
-      }
-    return(OK)
-  }
-
-  # run the twalk with the above energy and support, two sets of initial estimates, and its iterations
+  # write output to files if required
   out.fl <- c(); energy.fl <- c()
   if(write.MCMC) {
-	  out.fl <- file.path(strat.dir, name, paste0(name, "_tmp.out"))
-	  energy.fl <- file.path(strat.dir, name, paste0(name, "_tmp_energy.out"))
+    out.fl <- file.path(strat.dir, name, paste0(name, "_tmp.out"))
+    energy.fl <- file.path(strat.dir, name, paste0(name, "_tmp_energy.out"))
   }
-  info <- Runtwalk(Tr=its, Obj=energy, Supp=support, dim=nrow(dets), x0=x0, xp0=xp0, thinning=internal.thinning, out.fl=out.fl, energy.fl=energy.fl)
+
+  # run the twalk, but storing only output and energy (Us)
+  tw <- Runtwalk(Tr=its, Obj=energy, Supp=support, dim=nrow(dets), x0=x0, xp0=xp0,
+    thinning=internal.thinning, out.fl=out.fl, energy.fl=energy.fl, show.progress=show.progress)
+  output <- tw$output; Us <- tw$Us;
+
+  # post-run, remove any burn-in iterations
   if(burnin > 0) {
-    info$output <- info$output[-(1:burnin),]
-    info$Us <- info$Us[-(1:burnin)]
+    output <- output[-(1:burnin),]
+    Us <- Us[-(1:burnin)]
   }
   message("Removed a burn-in of ", burnin)
 
   # additional thinning after the run
   if(length(thinning) == 0) # by default, take the thinning value as suggested by rtwalk's IAT
-    thinning <- round(max(1, coffee::IAT(info, 0, burnin, info$k - burnin)))
+    thinning <- round(max(1, coffee::IAT(tw, 0, burnin, nrow(output))))
   message("Thinning the MCMC by storing every ", thinning, " iterations")
 
-  thinning <- seq(1, nrow(info$output), by=thinning)
-  info$output <- info$output[thinning,]
-  info$Us <- info$Us[thinning]
-  if(nrow(info$output) < 3e3)
-    message("Fewer than 3k MCMC iterations remaining, please consider a longer run by increasing 'its'")
+  thinning <- seq(1, nrow(output), by=thinning)
+  output <- output[thinning,]
+  Us <- Us[thinning]
+  if(nrow(output) < min.its)
+    message(paste("Fewer than", min.its, "MCMC iterations remaining, please consider a longer run by increasing 'its'"))
 
+  rm(tw)
   if(clean.garbage)
     gc()
 
-  # save output for future use
-  write.table(info$output, file.path(strat.dir, name, paste0(name, ".out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
-  write.table(info$Us, file.path(strat.dir, name, paste0(name, "_energy.out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
-
-  info$dets <- dat
+  # save output and variables for future use
+  write.table(output, file.path(strat.dir, name, paste0(name, ".out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
+  write.table(Us, file.path(strat.dir, name, paste0(name, "_energy.out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
+  info$dets <- dets
+  info$dat <- dat
+  info$struc <- struc
+  info$output <- output
+  info$Us <- Us
   assign_to_global("info", info)
 
+  # draw the dates and relative information
   if(length(dat[,5] == 10) > 0)
     y.scale <- "positions"  
+  dates <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
 
-  dates <- draw.strat(name, info, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
-
-  if(length(pos.gaps) > 0)
-    for(i in rev(pos.gaps))
-	  pos.dates[pos.dates>i] <- pos.dates[pos.dates>i] - 1  
-  overlapping <- overlap(dates$ages, dates$probs, info$output[,pos.dates])
+  if(length(struc$pos.gaps) > 0)
+    for(i in rev(struc$pos.gaps))
+      struc$pos.dates[struc$pos.dates>i] <- struc$pos.dates[struc$pos.dates>i] - 1 # why this?
+  overlapping <- overlap(dates$ages, dates$probs, output[,struc$pos.dates])
   info$overlap <- overlapping
-  assign_to_global("info", info)
+  info$name <- name
+  info$strat.dir <- file.path(strat.dir, name, name)
+  assign_to_global("info", info) # to ensure new information is available after running the strat function
 
   if(talk) { 
-	o <- order(overlapping)
-	pos.dates <- pos.dates[o]  
+    o <- order(overlapping)
+    pos.dates <- struc$pos.dates[o]
     message("Mean overlap between calibrated and modelled dates ",
       round(mean(overlapping),2), "%, ranging from ", 
       round(min(overlapping),2), "% (date ", pos.dates[1], ") to ",
       round(max(overlapping),2), "% (date ", pos.dates[length(pos.dates)], ")")
-	
+
     took <- as.numeric(format(Sys.time(), "%s")) - start.time
     if(took < 60) 
       message("Run took ", round(took, 2), " seconds") else
@@ -291,8 +264,47 @@ strat <- function(name="mystrat", strat.dir="strats", its=5e4, burnin=100, thinn
         message("Run took ", round(took/60, 2), " minutes") else
         if(took < 86400)
           message("Run took ", round(took/3600, 2), " hours") else
-	        message("Run took ", round(took/86400, 2), " days")
+            message("Run took ", round(took/86400, 2), " days")
   } 
+}
+
+
+
+# internal function to find the calibrated likelihoods for specific calibration curves and values x
+cc.energy <- function(j, Dets, these, cc, x, curves, Normal, ta, tb)
+  if(j %in% curves) { # has dates requiring this calibration curve
+    cc.y <- approx(cc[,1], cc[,2], x[these], rule=2)$y # rule=2 OK? once outside range, will float freely
+    cc.er <- approx(cc[,1], cc[,3], x[these], rule=2)$y
+
+    this.energy <- calib(Dets[these,2], Dets[these,3], cc.y, cc.er, Normal, ta, tb)
+    return(sum(this.energy))
+  } else # no dates which need this curve
+    return(0)
+
+
+
+# function to find the calibrated probability of x, given a calibration curve
+# required for function cc.energy and also inside the energy function
+calib <- function(y, er, cc.y, cc.er, normal, ta, tb)
+  if(normal)
+    dnorm(y, cc.y, sqrt(er^2 + cc.er^2), log=TRUE) else
+      log((tb + ((y-cc.y)^2) / (2*(sqrt(cc.er^2 + er^2)^2))) ^ (-1*(ta+0.5)))
+
+
+
+# internal function to calculate span likelihoods.
+# According to Nicholls & Jones 2002 (Radiocarbon 44),
+# a non-biased function for the span prior phi, given the data theta, is:
+# f(phi,theta) = ( 1/ (R - d(phi)) ) ( (1/ (d_phi)^(M-1) ),
+#   where R = A - P (P<=A) is the total possible span
+# (by default set from 55e3 cal BP to the current year in AD),
+# M is the number of events (e.g., dates, boundaries), and
+# d(phi) = phi_0 - phi_m is the (modelled) span between the boundary ages phi_m and phi_0.
+# f(phi,theta) = ( 1/ (R - d(phi)) ) ( (1/ (d_phi)^(M-1) )
+# as log: -log((R - dphi) - ((M-1) * log(dphi)))
+l.span <- function(max.x, min.x, R, M) {
+  dphi <- abs(max.x - min.x)
+  return(-log((R - dphi) - ((M-1) * log(dphi))))
 }
 
 
@@ -312,20 +324,21 @@ ages.undated <- function(position, set=get('info'), draw=TRUE) {
   ages.below <- set$output[,below]
   ages <- runif(1:nrow(set$output), ages.above, ages.below)
   if(draw)
-	plot(density(ages), main="", xlab="cal BP", ylab="")  
+    plot(density(ages), main="", xlab="cal BP", ylab="")
   return(ages)
 }
 
 
 
+# internal function to calculate how well the modelled distributions fit with the calibrated ones
 overlap <- function(calibs, probs, modelled, n=1e3) {
   same <- c()
   for(i in 1:ncol(modelled)) {
-	calib <- sample(calibs[,i], n, replace=TRUE, prob=probs[,i])
-	model <- sample(modelled[,i], n, replace=TRUE)
-	smaller <- length(which(calib-model < 0))
-	larger <- length(which(calib-model > 0))
-	same[i] <- 1-abs(smaller-larger)/n
+    calib <- sample(calibs[,i], n, replace=TRUE, prob=probs[,i])
+    model <- sample(modelled[,i], n, replace=TRUE)
+    smaller <- length(which(calib-model < 0))
+    larger <- length(which(calib-model > 0))
+    same[i] <- 1-abs(smaller-larger)/n
   }
   return(100*same) # as percentage
 }
