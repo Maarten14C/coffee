@@ -7,15 +7,16 @@
 draw.strat(
   name = "mystrat",
   set = get("info"),
+  structure = set$struc,
   y.scale = "positions",
   strat.dir = "strats",
   cc.dir = c(),
   sep = ",",
   postbomb = FALSE,
-  calibrated.ex = 0.5,
+  calibrated.ex = c(),
   calibrated.mirror = FALSE,
   calibrated.up = TRUE,
-  modelled.ex = 0.5,
+  modelled.ex = c(),
   modelled.mirror = FALSE,
   modelled.up = FALSE,
   BCAD = FALSE,
@@ -26,6 +27,8 @@ draw.strat(
   ybottom.lab = "position",
   calibrated.col = rgb(0, 0, 0, 0.2),
   calibrated.border = NA,
+  calBP.col = rgb(0, 0, 0, 0.2),
+  calBP.border = NA,
   modelled.col = rgb(0, 0, 0, 0.5),
   modelled.border = rgb(0, 0, 0, 0.5),
   range.col = "black",
@@ -41,6 +44,7 @@ draw.strat(
   mar.bottom = c(3, 3, 0.5, 1),
   heights = c(0.3, 0.7),
   iterations.warning = TRUE,
+  min.its = 1000,
   warning.loc = "bottomleft",
   warning.col = "red"
 )
@@ -60,13 +64,13 @@ draw.strat(
 
 \item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
 
-\item{calibrated.ex}{Exaggeration of the heights of the calibrated distributions. Defaults to 0.5. Note that more precise dates peak higher than dates with lower precision.}
+\item{calibrated.ex}{Exaggeration of the heights of the calibrated distributions. Calculated automatically by default. Note that more precise dates peak higher than dates with lower precision.}
 
 \item{calibrated.mirror}{Whether or not the individually calibrated (but not the modelled) distributions should be drawn both up and down, quite a bit like fish or swans. Defaults to FALSE.}
 
 \item{calibrated.up}{Whether the calibrated distributions should be drawn upward or downward (the default, resembling the reflections of islands in the sea, or swimming animals if you wish)}
 
-\item{modelled.ex}{Exaggaration of the heights of the age-modelled distributions. Defaults to 0.5. Note that more precise ages peak higher than ages with lower precision.}
+\item{modelled.ex}{Exaggaration of the heights of the age-modelled distributions. Calculated automatically by default. Note that more precise ages peak higher than ages with lower precision.}
 
 \item{modelled.mirror}{Whether or not the age-modelled distributions should be drawn both up and down, quite a bit like fish or swans. Defaults to FALSE.}
 
@@ -86,7 +90,11 @@ draw.strat(
 
 \item{calibrated.col}{Colour of the inside of the unmodelled, calibrated ages. Defaults to semi-transparent light grey, \code{rgb(0,0,0,0.5}.}
 
-\item{calibrated.border}{Colour of the border of the unmodelled, calibrated ages. Defaults to nothing, NA.}
+\item{calibrated.border}{Colour of the border of the unmodelled non-14C ages. Defaults to nothing, NA.}
+
+\item{calBP.col}{Colour of the inside of the unmodelled non-14C ages. Defaults to semi-transparent light grey, \code{rgb(0,0,0,0.5}.}
+
+\item{calBP.border}{Colour of the border of the unmodelled, calibrated ages. Defaults to nothing, NA.}
 
 \item{modelled.col}{Colour of the inside of the modelled ages. Defaults to semi-transparent dark grey, \code{rgb(0,0,0,0.5}.}
 
@@ -117,6 +125,8 @@ draw.strat(
 \item{heights}{Relative heights of the two panels in the plot. Defaults to 0.3 for the top and 0.7 for the bottom panel.}
 
 \item{iterations.warning}{Whether or not to plot a warning if there are < 3000 iterations, too few for a reliable MCMC run.}
+
+\item{min.its}{The minimum amount of iterations, below which a warning is printed (if \code{iterations.warning=TRUE}). Defaults to 1,000.}
 
 \item{warning.loc}{Location of the warning}
 

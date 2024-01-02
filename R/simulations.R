@@ -56,7 +56,7 @@ sim.rings <- function(name="mytree", age.start=1000, length=400, gaps=20, offset
 #' @title Simulate the radiocarbon dating of random depths of a sediment which has accumulated over time.
 #' @description Simulate the radiocarbon dating (or with dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated depths can be safely assumed to be in chronological order.
 #' @details Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The modelling is performed in a Bayesian framework (see \code{strat}). The amount of scatter, the laboratory error and an offset can also be modelled.
-#' @param name Name of the simulated tree-ring set. Defaults to \code{"mytree"}.
+#' @param name Name of the simulated stratigraphy. Defaults to \code{"mystrat"}.
 #' @param age.min Minimum age of the simulation.
 #' @param length Length of the sequence.
 #' @param n The amount of dated depths.
@@ -64,7 +64,7 @@ sim.rings <- function(name="mytree", age.start=1000, length=400, gaps=20, offset
 #' @param scatter There is always a degree of scatter between measurements, and the amount of scatter can be modelled using, e.g., \code{scatter=2*error}. Set at 0 to model radiocarbon dates that are 100\% faithful to the calibration curve (very unlikely!).
 #' @param error Laboratory error of the radiocarbon dates as percentage of the mean. Defaults to 0.02.
 #' @param min.error Minimum laboratory to be reported. Defaults to 10 (C-14 year).
-#' @param rounded Rounding of the simulated calendar years. Rounds to single years by default.
+#' @param rounded Rounding of the simulated calendar years. Rounds to single years (0 decimals) by default.
 #' @param strat.dir The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param cc Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).

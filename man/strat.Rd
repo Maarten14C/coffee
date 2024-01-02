@@ -7,11 +7,15 @@
 strat(
   name = "mystrat",
   strat.dir = "strats",
+  run = TRUE,
   its = 50000,
   burnin = 100,
   thinning = c(),
   internal.thinning = c(),
-  write.MCMC = TRUE,
+  min.its = 1000,
+  write.MCMC = FALSE,
+  MCMC.dir = c(),
+  remove.tmp = TRUE,
   init.ages = c(),
   ballpark.method = 2,
   y.scale = "dates",
@@ -22,14 +26,15 @@ strat(
   delta.STD = 0,
   t.a = 3,
   t.b = 4,
-  cc = 1,
   cc.dir = c(),
+  prob = 0.95,
   postbomb = FALSE,
   BCAD = FALSE,
   ask = FALSE,
   talk = TRUE,
   show.progress = TRUE,
   clean.garbage = TRUE,
+  save.info = TRUE,
   age.span = c(),
   ...
 )
@@ -37,7 +42,7 @@ strat(
 \arguments{
 \item{name}{Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.}
 
-\item{strat.dir}{The directory where the folders of the individual stratigraphies live. Defaults to \code{treedir="strats"}.}
+\item{strat.dir}{The directory where the folders of the individual stratigraphies live. Defaults to \code{strat.dir="strats"}.}
 
 \item{its}{Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable and less reliable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}. Aim to set this to such values that at least 3000 iterations remain after removing the burnin and thinning.}
 
@@ -47,7 +52,13 @@ strat(
 
 \item{internal.thinning}{Does internal thinning during the MCMC process, storing only every 'internal.thinning' MCMC iterations.}
 
-\item{write.MCMC}{Especially longer runs or sites with many dates can take up lots of memory. For such cases, MCMC iterations are stored in temporary files rather than in memory. Defaults to TRUE.}
+\item{min.its}{Minimum number of (remaining) iterations, below which a warning is given. Defaults for now to 1,000 iterations.}
+
+\item{write.MCMC}{Especially longer runs or sites with many dates can take up lots of memory. For such cases, MCMC iterations are stored in temporary files (and in the session's tempdir() folder) rather than in memory - however this could impact your computer as the files have to be written to repeatedly and they can become huge. Defaults to FALSE.}
+
+\item{MCMC.dir}{Directory where temporary MCMC files will be saved. If left empty, defaults to \code{tempdir()}.}
+
+\item{remove.tmp}{If \code{write.MCMC=TRUE}, then by default the (often huge) temporary files are deleted after the run. Set to \code{remove.tmp=FALSE} to keep these temporary files. The files will be placed in the temporary folder of this R session - where this is can be checked by providing the command \code{tempdir()}.}
 
 \item{init.ages}{By default, the ballpark age estimates to feed the MCMC are calculated automatically, however they can also be provided manually, as two rows of values (for x0 and xp0) which have to obey the assumptions (e.g., chronological ordering).}
 
@@ -69,9 +80,7 @@ strat(
 
 \item{t.b}{Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution}
 
-\item{cc}{Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).}
-
-\item{cc.dir}{Directory of calibration curve. Keep empty for the default value.}
+\item{cc.dir}{Directory of calibration curve(s). Keep empty for the default value.}
 
 \item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
 
@@ -79,16 +88,18 @@ strat(
 
 \item{ask}{Whether or not to ask if a folder should be made (if required).}
 
-\item{talk}{Whether or not show the progress of the MCMC run.}
+\item{talk}{Whether or not to provide feedback on folders written into and on what is happening.}
 
 \item{clean.garbage}{Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.}
 
+\item{save.info}{Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.}
+
 \item{age.span}{Expected age span. Defaults to run from the current year in AD to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, age.span is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.}
 
-\item{...}{Options for the plot. See \code{plot.strat}.}
+\item{...}{Options for the plot. See \code{draw.strat}.}
 }
 \value{
-a variable 'info' which contains the dating and modelling information to produce a plot. Also calls the function \code{draw.strat} to produce a plot of the results.
+a variable 'info' which contains the dating and modelling information to produce a plot (see details). Also calls the function \code{draw.strat} to produce a plot of the results.
 }
 \description{
 Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated positions can be safely assumed to are in chronological order.
@@ -102,6 +113,7 @@ The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010)
 Then this iteration with the updated group of age estimates is either accepted or rejected. The acceptance probability depends on the iteration's energy; if its energy is higher than that of the previous iteration it is accepted, but if it is lower, it is accepted with a probability proportional to its relative energy. Therefore, over many iterations the process will 'learn' from the data and find high-energy combinations of parameter values that fit with the prior constraints that the ages should be ordered chronologically.
 Because the iterations are based on a process of modifying values of one parameter each iteration, and because some iterations will not be accepted, the MCMC output will often have a large degree of dependence between neighbouring iterations. Therefore, some thinning will have to be done, by storing only one every few iterations (default 20). Also, since the initial ball-park estimates could be quite wrong, the first 100 or so iterations should also be discarded (burnin). 
 It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
+By default, the model output and the settings are stored in a list called `info'. For example, to retrieve the model output, type info$output. This has a column for each date, and a row for each stored MCMC iteration. The MCMC's energy can be found in info$Us. The model's `structure' such as blocks or gaps can be found in info$struc. To check which dates were used, type info$dets or info$dat (the latter will include all information, including any gaps).
 }
 \examples{
 \dontrun{

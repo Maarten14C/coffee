@@ -22,7 +22,7 @@ sim.strat(
 )
 }
 \arguments{
-\item{name}{Name of the simulated tree-ring set. Defaults to \code{"mytree"}.}
+\item{name}{Name of the simulated stratigraphy. Defaults to \code{"mystrat"}.}
 
 \item{age.min}{Minimum age of the simulation.}
 
@@ -38,7 +38,7 @@ sim.strat(
 
 \item{min.error}{Minimum laboratory to be reported. Defaults to 10 (C-14 year).}
 
-\item{rounded}{Rounding of the simulated calendar years. Rounds to single years by default.}
+\item{rounded}{Rounding of the simulated calendar years. Rounds to single years (0 decimals) by default.}
 
 \item{strat.dir}{The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.}
 

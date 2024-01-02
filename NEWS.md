@@ -1,6 +1,10 @@
 # coffee 0.2.1
 * updated the vignette
 * added functions scissors and thinner for manipulation of MCMC output
+* enhanced strat code so it runs around 40% faster
+* previous strat runs can now be reloaded (using run=FALSE)
+* files are now read and written to faster (using fread, fwrite)
+* added measure-of-fit overlap (and also offset for rings)
 
 # coffee 0.2.0
 * now links to the rintcal package (renamed from IntCal)

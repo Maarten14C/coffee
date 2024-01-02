@@ -16,6 +16,7 @@ rings(
   ask = TRUE,
   age.steps = 1,
   cutoff = 1e-06,
+  prob = 0.95,
   cc = 1,
   postbomb = FALSE,
   BCAD = FALSE,
@@ -26,9 +27,9 @@ rings(
 )
 }
 \arguments{
-\item{name}{Name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{treedir} folder. Default names include Ulandryk4 and mytree.}
+\item{name}{Name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{treedir} folder. The default is Ulandryk.}
 
-\item{tree.dir}{The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.}
+\item{tree.dir}{The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.}
 
 \item{sep}{Separator for the fields in the .csv file. Defaults to a comma.}
 
@@ -48,7 +49,7 @@ rings(
 
 \item{cutoff}{Value below which probabilities are no longer taken into account. Defaults to 0.000001.}
 
-\item{cc}{Calibration curve to be used. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve).}
+\item{cc}{Calibration curve to be used, for glueing to a postbomb curve. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve). Normally not used, except in the case where there are postbomb dates (requiring the 'gluing' of pre- and postbomb curves).}
 
 \item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
 
@@ -76,15 +77,14 @@ Since only one parameter has to be estimated (the age of the earliest, innermost
 a MCMC approach is not necessary nor recommended, and results are calculated analytically.
 
 Files for tree wiggle-matching should contain the following columns: lab ID, C-14 age, error, ring, cc. Rings are counted from the inner ring (0 year old) outwards, so, forward in time. The file should start with the youngest rings, then work downward until reaching the oldest, bottommost dated rings. 
-cc should either be 1 (IntCal20; northern hemisphere #' terrestrial, 2 (Marine20, though I've never heard of marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve). The tree files should be in plain-text and fields separated by commas.
+cc should either be 1 (IntCal20; northern hemisphere terrestrial, 2 (Marine20, though we've never heard of marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve). The tree files should be in plain-text and fields separated by commas. 
 
-Default tree files include Ulandryk4 (Christen 2003) and a simulated tree (see \code{sim.tree()}).
+The default tree is called Ulandryk (Kuzman et al. 2004). As an alternative, a tree can be simulated (see \code{sim.tree()}).
 
-By default, the data are calibrated assuming a student-t distribution, which has wider tails than the normal distribution and deals well with outliers.
+By default, the data are calibrated assuming a student-t distribution, which has wider tails than the normal distribution and deals well with scatter and outliers.
 }
 \examples{
-  rings("Ulandryk4", tree.dir=tempdir())
-  rings("mytree", tree.dir=tempdir())
+  rings("Ulandryk", tree.dir=tempdir())
 }
 \references{
 Bronk Ramsey C, van der Plicht J, Weninger B, 2001. 'Wiggle matching' radiocarbon dates. Radiocarbon 43, 381–389.
@@ -94,6 +94,8 @@ Christen JA, Litton CD, 1995. A Bayesian approach to wiggle-matching. Journal of
 Christen JA, 2003. Bwigg: An Internet facility for Bayesian radiocarbon wiggle-matching. Internet Archaeology 13. \doi{10.11141/ia.13.2}
 
 Christen JA, Perez S, 2009. A new robust statistical model for radiocarbon data. Radiocarbon 51, 1047-1059
+
+Kuzmin Y, Slusarenko I, Hajdas I, Bonani G, Christen JA. 2004. The comparison of 14C wiggle-matching results for the ‘floating’ tree-ring chronology of the Ulandryk-4 Burial Ground (Altai Mountains, Siberia). Radiocarbon 46, 943–948.
 }
 \author{
 Maarten Blaauw, J. Andres Christen

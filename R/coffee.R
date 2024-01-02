@@ -1,19 +1,24 @@
-
-
-# ensure that functions such as pMC.age etc. are available immediately:
-library(rintcal)
+# todo:
+# check strat, are blocks dealt with correctly?
+# plot: gaps are not plotted on the right depth if there's a block above them
 
 # dates close to 0 14C BP (e.g. 260 +- 20) go wrong - too close to end cc? Add option youngest.age???
 
-# FallSpike colouring of dates in blocks doesn't go well
+# colouring of dates in blocks doesn't go well
 
 # add optional circle symbol below each age-modelled mode, coloured according to the info$overlap value
 
 # add a strat option for multiple cores which share events?
 
-# add MCMC checks a la baconvergence for strat?
+# add MCMC checks a la baconvergence for strat? It is using IAT already to propose thinning values
 
 # an animation of strat would be fun, with 0 burnin and a short run. Draw coloured dots of the simulated ages and how they move through the iterations. Leave shadows of previous dots?
+
+# preparing the rings function to facilitate animations would also be helpful
+
+
+# ensure that functions such as pMC.age etc. are available immediately:
+library(rintcal)
 
 ### some internal functions to write and read things
 

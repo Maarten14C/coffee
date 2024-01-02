@@ -92,13 +92,15 @@ structure <- function(dat) {
   # fill vars r (row), p (position), d (dated), u (undated), b (block, where 0 = outside block, 1 = first block, etc.), g (gap)
   r <- 1:xlength
   p <- 1 # deals with position entries that are not integers
-  k <- 1
+  k <- 0
   for(i in 2:xlength) {
-    if(dat[i,4] > dat[i-1,4])
-      k <- k+1 else
-        if(dat[i,4] - dat[i-1,4] < 0)
-          stop("positions in .csv file should be in chronological order")
-    p[i] <- k
+	step <- dat[i,4] - dat[i-1,4]
+    if(step > 0) # we've moved down a position
+      p[i] <- p[i-1] +1
+    if(step < 0)
+      stop("positions in .csv file should be in chronological order")
+	if(step == 0)
+	  p[i] <- p[i-1]
   }
 
   # dates and undated levels which need an age
@@ -106,9 +108,10 @@ structure <- function(dat) {
   d[which(dets[,5]>0)] <- 1
   u <- rep(0, xlength)
   u[which(dets[,5] == 10)] <- 1
-
+  
   within.block <- c()
   # dates within blocks
+
   b <- rep(0, xlength)
   if(length(is.block) > 0) {
     above.block <- rep(NA, length(blocks))
@@ -117,9 +120,9 @@ structure <- function(dat) {
     for(i in 1:length(blocks)) {
       these <- which(p %in% blocks[i])
       b[these] <- i
-      within.block[[i]] <- these
-      above.block[i] <- max(which(p < blocks[i]))
-      below.block[i] <- min(which(p > blocks[i]))
+      above.block[i] <- max(which(dets[,4] < blocks[i]))
+      below.block[i] <- min(which(dets[,4] > blocks[i]))
+      within.block[[i]] <- (above.block[i]+1) : (below.block[i]-1)
     }
   } else {
     above.block <- c()
@@ -211,11 +214,16 @@ structure <- function(dat) {
 
 # set initial values for the MCMC run
 ballpark.strat <- function(method=1, dat, gaps, postbomb=postbomb, normal=normal, t.a=t.a, t.b=t.b, cc.dir=cc.dir) {
+  is.exact <- c()
   ballpark.x <- rep(NA, nrow(dat))
   for(i in 1:nrow(dat))
     if(dat[i,5] %in% 0:4) { # then it's a date
       tmp <- caldist(dat[i,2], dat[i,3], cc = dat[i,5], postbomb = postbomb, normal = normal, t.a = t.a, t.b = t.b, cc.dir=cc.dir)
       ballpark.x[i] <- weighted.mean(tmp[,1], tmp[,2], na.rm=TRUE)
+     # if(dat[i,3] == 0)
+     #   is.exact <- c(is.exact, i)
+     # if(is.null(dat[i,3]))
+     #   is.exact <- c(is.exact, i)
     } 
   for(i in which(dat[,5] == 10)) {
     surround <- c(ballpark.x[i+1],ballpark.x[i-1])
@@ -232,7 +240,13 @@ ballpark.strat <- function(method=1, dat, gaps, postbomb=postbomb, normal=normal
     ballpark.x <- sort(ballpark.x)
 
   x0 <- sort(jitter(ballpark.x, factor=0.5)) # initial ball-park age estimates
-  xp0 <- sort(jitter(ballpark.x, factor=0.5))  # twalk needs two sets of estimates
+  xp0 <- sort(jitter(ballpark.x, factor=0.5)) # twalk needs two sets of estimates
+
+  # deal with exact ages (they have 0 or empty entries in error column)
+  if(length(is.exact) > 0) {
+    x0[is.exact] <- dat[is.exact,2]
+    xp0[is.exact] <- dat[is.exact,2]
+  }
 
   # here set any exact spans
   if(length(gaps) > 0)
@@ -241,6 +255,9 @@ ballpark.strat <- function(method=1, dat, gaps, postbomb=postbomb, normal=normal
       x0[younger+1] <- x0[younger] + gaps[i,2]
       xp0[younger+1] <- xp0[younger] + gaps[i,2]
     }
+
+  if(min(diff(x0)) < 0 || min(diff(xp0)) < 0)
+    warning("reversals present in initial values")
 
   return(rbind(x0,xp0))
 }
@@ -262,10 +279,11 @@ ballpark.strat <- function(method=1, dat, gaps, postbomb=postbomb, normal=normal
 #' a warning is given and the iterations are not removed. If the provided number is negative, the iterations will be removed from the end of the run, not from the start. If a range is given, this range of iterations is removed.
 #' @param set Detailed information of the current run, stored within this session's memory as variable \code{info}.
 #' @param write Whether or not to write the changes to the output file. Defaults to TRUE.
+#' @param save.info Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.
 #' @return NA
 #'
 #' @export
-scissors <- function(burnin, set=get('info'), write=TRUE) {
+scissors <- function(burnin, set=get('info'), write=TRUE, save.info=TRUE) {
   output <- fastread(paste0(set$strat.dir, ".out"))
   energy <- fastread(paste0(set$strat.dir, "_energy.out"))[,1]
 
@@ -294,7 +312,9 @@ scissors <- function(burnin, set=get('info'), write=TRUE) {
   set$Tr <- nrow(output)
   set$Us <- energy 
   set$Ups <- energy
-  assign_to_global("info", set)
+  if(save.info)
+    assign_to_global("info", set)
+  invisible(set)
 }
 
 
@@ -306,10 +326,11 @@ scissors <- function(burnin, set=get('info'), write=TRUE) {
 #' @param proportion Proportion of iterations to remove. Should be between 0 and 1. Default \code{proportion=0.1}.
 #' @param set Detailed information of the current run, stored within this session's memory as variable \code{info}.
 #' @param write Whether or not to write the changes to the output file. Defaults to TRUE.
+#' @param save.info Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.
 #' @return NA
 #'
 #' @export
-thinner <- function(proportion=0.1, set=get('info'), write=TRUE) {
+thinner <- function(proportion=0.1, set=get('info'), write=TRUE, save.info=TRUE) {
   output <- fastread(paste0(set$strat.dir, ".out"))
   energy <- fastread(paste0(set$strat.dir, "_energy.out"))[,1]
 	
@@ -327,5 +348,7 @@ thinner <- function(proportion=0.1, set=get('info'), write=TRUE) {
   set$Tr <- nrow(output)
   set$Us <- energy 
   set$Ups <- energy
-  assign_to_global("info", set)
+  if(save.info)
+    assign_to_global("info", set)
+  invisible(set)
 }

@@ -4,7 +4,7 @@
 \alias{scissors}
 \title{Remove the first n iterations.}
 \usage{
-scissors(burnin, set = get("info"), write = TRUE)
+scissors(burnin, set = get("info"), write = TRUE, save.info = TRUE)
 }
 \arguments{
 \item{burnin}{Number of iterations to remove of the iterative time series. If this value is higher than the amount of remaining iterations,
@@ -13,6 +13,8 @@ a warning is given and the iterations are not removed. If the provided number is
 \item{set}{Detailed information of the current run, stored within this session's memory as variable \code{info}.}
 
 \item{write}{Whether or not to write the changes to the output file. Defaults to TRUE.}
+
+\item{save.info}{Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.}
 }
 \value{
 NA
