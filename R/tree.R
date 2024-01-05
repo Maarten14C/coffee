@@ -9,8 +9,10 @@
 #' Since only one parameter has to be estimated (the age of the earliest, innermost ring),
 #' a MCMC approach is not necessary nor recommended, and results are calculated analytically.
 #'
-#' Files for tree wiggle-matching should contain the following columns: lab ID, C-14 age, error, ring, cc. Rings are counted from the inner ring (0 year old) outwards, so, forward in time. The file should start with the youngest rings, then work downward until reaching the oldest, bottommost dated rings. 
-#' cc should either be 1 (IntCal20; northern hemisphere terrestrial, 2 (Marine20, though we've never heard of marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve). The tree files should be in plain-text and fields separated by commas. 
+#' The tree files should be in plain-text and fields separated by commas, and the file's extension should be ".csv".
+#' The files should start with a line contain the following headers: "lab ID", "C-14 age", "error", "ring", "cc", separated by commas. Then each row should have the corresponding values, also separated by commas.
+#' Rings are counted from the inner ring (0 year old) outwards, so, forward in time. The file should start with the youngest rings, then work downward until reaching the oldest, bottommost dated rings. 
+#' cc should either be 1 (IntCal20; northern hemisphere terrestrial, 2 (Marine20, though we've never heard of marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve). 
 #'
 #' The default tree is called Ulandryk (Kuzman et al. 2004). As an alternative, a tree can be simulated (see \code{sim.tree()}).
 #'
@@ -26,6 +28,7 @@
 #' @param ask Whether or not to ask if new folders should be written (if required)
 #' @param age.steps Steps in years for the calculations. Defaults to 1, every year.
 #' @param cutoff Value below which probabilities are no longer taken into account. Defaults to 0.000001.
+#' @param prob After the run, a fit of the model with the dates is calculated, as the ratio of model iterations that fit the hpd ranges of the dates. Defaults to the \code{prob=0.95} hpd ranges.
 #' @param cc Calibration curve to be used, for glueing to a postbomb curve. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve). Normally not used, except in the case where there are postbomb dates (requiring the 'gluing' of pre- and postbomb curves).
 #' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
 #' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.
@@ -53,8 +56,8 @@ rings <- function(name="mytree", tree.dir="trees", sep=",", normal=FALSE, delta.
 
   tree.dir <- assign_dir(tree.dir, name, "tree.dir", ask=FALSE, talk)
   if(name %in% "Ulandryk") {
-    fileCopy <- system.file(paste0("extdata/", name, ".csv"), package="coffee")
-    file.copy(fileCopy, tree.dir, recursive = TRUE, overwrite=FALSE)
+    fileCopy <- system.file("extdata/Ulandryk.csv", package="coffee")
+    file.copy(fileCopy, file.path(tree.dir), recursive = TRUE, overwrite=FALSE)
   }
   dat <- read.table(file.path(tree.dir, paste0(name, ".csv")), header=TRUE, sep=",")
 

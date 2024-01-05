@@ -1,0 +1,15 @@
+bibentry("Article",
+author = "Maarten Blaauw and Marco Aquino-L{\'o}pez and J. Andr{\'e}s Christen",
+title = "Modelling chronologically ordered radiocarbon dates in R",
+journal = "Radiocarbon",
+volume = "",
+number = "",
+pages = " -- ",
+keywords = "Bayesian modeling, Calibration, Chronology, Stratigraphy, wiggle--match dating",
+year = "2024",
+doi = "",
+URL = "",
+
+textVersion =
+    "Blaauw, M., Aquino, M., Christen, J.A., 2024. Modelling chronologically ordered radiocarbon dates in R. Radiocarbon"
+)

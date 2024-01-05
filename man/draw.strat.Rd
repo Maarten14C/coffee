@@ -54,6 +54,8 @@ draw.strat(
 
 \item{set}{This option reads the 'info' variable, which contains the data and the model output.}
 
+\item{structure}{Information about the structure (e.g., blocks, gaps, dates, undated levels) of the dataset. Filled automatically.}
+
 \item{y.scale}{The scale of the vertical axis of the main plot. This can be the positions of the dated levels (`positions`) or their position order (`dates`).}
 
 \item{strat.dir}{The directory where the folders of the individual stratigraphies live. Defaults to \code{start.dir="strats"}.}

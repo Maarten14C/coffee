@@ -3,6 +3,7 @@
 #' @description A plot with two panels. The top panel shows the MCMC output. The bottom panel shows the individually calibrated dates (in downward light gray) as well as the modelled ages constrained by chronological ordering (upward dark-grey) and lines with the hpd ranges (black). Any similarity with swimming elephants or island chains is coincidental.
 #' @param name Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.
 #' @param set This option reads the 'info' variable, which contains the data and the model output.
+#' @param structure Information about the structure (e.g., blocks, gaps, dates, undated levels) of the dataset. Filled automatically.
 #' @param y.scale The scale of the vertical axis of the main plot. This can be the positions of the dated levels (`positions`) or their position order (`dates`). 
 #' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{start.dir="strats"}.
 #' @param cc.dir Directory of calibration curve. Keep empty for the default value.
@@ -84,7 +85,6 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   if(length(pos.lim) == 0)
     pos.lim <- extendrange(y.scale, f=0.1)
 
-
   # calculate highest prob of all dates, prior to drawing
   calib.mx <- 0
   for(i in 1:length(dates)) {
@@ -102,11 +102,11 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
     modelled.ex <- .02 / (mod.mx * nrow(dets)^1.2)
 
   par(mar=mar.bottom)
-  dates <- draw.dates(dets[dates,2], dets[dates,3], y.scale, dets[dates,5], cc.dir=cc.dir, postbomb=postbomb, ex=calibrated.ex, mirror=calibrated.mirror, up=calibrated.up, col=calibrated.col, border=calibrated.border, cal.col=calBP.col, cal.border=calBP.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=FALSE, cal.lab=xbottom.lab, d.lab=ybottom.lab, age.lim=age.lim, d.lim=pos.lim)
+  Dates <- draw.dates(dets[dates,2], dets[dates,3], y.scale, dets[dates,5], cc.dir=cc.dir, postbomb=postbomb, ex=calibrated.ex, mirror=calibrated.mirror, up=calibrated.up, col=calibrated.col, border=calibrated.border, cal.col=calBP.col, cal.border=calBP.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=FALSE, cal.lab=xbottom.lab, d.lab=ybottom.lab, age.lim=age.lim, d.lim=pos.lim)
 
-  if(info$struc$has.blocks) {
-    above <- info$struc$above.block
-    below <- info$struc$below.block
+  if(set$struc$has.blocks) {
+    above <- set$struc$above.block
+    below <- set$struc$below.block
     y.above <- c(); y.below <- c()
     for(i in 1:length(above)) {
       y.above[i] <- mean(y.scale[above[i]+c(0,1)])
@@ -165,12 +165,11 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
     }
   }
   
-  set$hpds <- hpds
-  set$dates <- dates
-  
-  dates$hpds <- hpds 
-  assign_to_global("info", set)
-  invisible(dates)
+  #set$hpds <- hpds
+  #set$dates <- dates 
+  #assign_to_global("info", set)
+  Dates$hpds <- hpds 
+  invisible(Dates)
 }
 
 
@@ -215,8 +214,8 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
 #' @return A plot with the calibrated distributions of the individual dates and the wiggle-match distributions (top), and the dates on the calibration curve together with the age distribution for the earliest ring, 0.
 #' @examples
 #'   treedir <- tempdir()
-#'   rings("Ulandryk4", tree.dir=treedir, draw=FALSE)
-#'   draw.rings("Ulandryk4", tree.dir=treedir)
+#'   rings("Ulandryk", tree.dir=treedir, draw=FALSE)
+#'   draw.rings("Ulandryk", tree.dir=treedir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export
 draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, dat=c(), out=c(), cc=1, postbomb=FALSE, BCAD=FALSE, t.a=3, t.b=4, x.lim=c(), x1.axis=TRUE, x1.labels=FALSE, x1.lab=c(), rev.x=FALSE, y1.lab=c(), y1.lim=c(), y2.lim=c(), x2.lab=c(), y2.lab=c(), ex=0.05, plot.cc=TRUE, plot.dists=TRUE, mar.1=c(1,3,1,1), mar.2=c(3,3,0,1), mgp=c(1.7, .7, 0), dist.res=500, date.col="steelblue", cc.col=rgb(0, 0.5, 0, 0.5), dist.col=rgb(0,0,0,0.5), calib.col=rgb(0,0,1,0.25), range.col="black", set.layout=TRUE) {

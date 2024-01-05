@@ -3,16 +3,18 @@
 #' @title Model chronologically ordered dates
 #' @description Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated positions can be safely assumed to are in chronological order.
 #' @details Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The amount of scatter, the laboratory error and an offset can also be modelled.
-#' The function reads in a .csv file of a specific format. The first column contains the names of the dates/information, the second column has the age(s) (uncalibrated for radiocarbon dates, as they will be calibrated during the modelling), the third column their errors, the fourth column their position (see below), and the fifth column cc, the calibration curve information. Additional columns for the reservoir effect (delta.R and delta.STD) and the student-t model (t.a and t.b) can be added, much like rbacon .csv files.
+#' The function reads in a comma-separated-values (.csv) file of a specific format. The first column contains the names of the dates/information, the second column has the age(s) (uncalibrated for radiocarbon dates, as they will be calibrated during the modelling), the third column their errors, the fourth column their position (see below), and the fifth column cc, the calibration curve information. Additional columns for the reservoir effect (delta.R and delta.STD) and the student-t model (t.a and t.b) can be added, much like rbacon .csv files.
+#' The file should contain a header as the first row, named "lab ID", "age", "error", "position", and "cc" (with additional fields as per below if required). The extension of the file should be ".csv". 
 #' The positions of the dates (column 4) should be entered with the topmost, youngest levels first, and then working downward toward the oldest levels. The topmost position gets the lowest number (e.g., 0), and each subsequent entry should have a higher position number to ensure that the levels are ordered in time. Dates in 'blocks' where there is no known age ordering between the dates in the block (but where that block is known to be older than the level above it and younger than the level below it) should all get the same position in column 4.  
 #' The function does not only deal with dates (radiocarbon or otherwise), but can also model undated levels and a range of gaps between the dated levels. This is done mostly through column 5 in the .csv files, where a 0 is for dates on the cal BP scale, 1 for radiocarbon dates that require calibration with IntCal20, 2 with Marine20, 3 with SHCal20, 4 a custom calibration curve; additional information can be provided by adding entries for undated levels (cc=10), gaps of exactly known length (cc=11), normally distributed gap lengths (cc=12), or gamma distributed gap lengths (cc=13).
 #' The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010). In this process, initial ball-park point estimates for the ages of each dated depth are given, checked for their chronological ordering (and for the sizes of any gaps) and then modified through many iterations. For each iteration, a random dated depth is chosen and its age changed by just a little nudge, a check is performed to ensure that all age estimates remain in chronological order (and that gap sizes remain obeyed), and the 'energy' or likelihood of the age estimates is calculated (iterations where all ages fit well within the calibrated distributions receive a higher energy; see \code{l.calib}). 
 #' Then this iteration with the updated group of age estimates is either accepted or rejected. The acceptance probability depends on the iteration's energy; if its energy is higher than that of the previous iteration it is accepted, but if it is lower, it is accepted with a probability proportional to its relative energy. Therefore, over many iterations the process will 'learn' from the data and find high-energy combinations of parameter values that fit with the prior constraints that the ages should be ordered chronologically.
 #' Because the iterations are based on a process of modifying values of one parameter each iteration, and because some iterations will not be accepted, the MCMC output will often have a large degree of dependence between neighbouring iterations. Therefore, some thinning will have to be done, by storing only one every few iterations (default 20). Also, since the initial ball-park estimates could be quite wrong, the first 100 or so iterations should also be discarded (burnin). 
 #' It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
-#' By default, the model output and the settings are stored in a list called `info'. For example, to retrieve the model output, type info$output. This has a column for each date, and a row for each stored MCMC iteration. The MCMC's energy can be found in info$Us. The model's `structure' such as blocks or gaps can be found in info$struc. To check which dates were used, type info$dets or info$dat (the latter will include all information, including any gaps). 
+#' By default, the model output and the settings are stored in a list called `info' which is placed into R's session as a list. For example, to retrieve the model output, type info$output. This has a column for each date, and a row for each stored MCMC iteration. The MCMC's energy can be found in info$Us. The model's `structure' such as blocks or gaps can be found in info$struc. To check which dates were used, type info$dets or info$dat (the latter will include all information, including any gaps). 
 #' @param name Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.
 #' @param strat.dir The directory where the folders of the individual stratigraphies live. Defaults to \code{strat.dir="strats"}.
+#' @param run Whether or not to run the data. If set to FALSE, will try to load existing run data. 
 #' @param its Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable and less reliable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}. Aim to set this to such values that at least 3000 iterations remain after removing the burnin and thinning.
 #' @param burnin Amount of iterations to remove at the start of the run. Defaults to \code{100}.
 #' @param thinning After running all iterations, only some will be stored. For example, if thinning is set at the default \code{50}, only every 50th MCMC iteration will be stored, and the others will be discarded. This is to remove the dependence between neighbouring MCMC iterations. Defaults to a value calculated from the MCMC run itself.
@@ -30,13 +32,15 @@
 #' @param delta.R The ages can be modelled to have an offset. The mean is 0 by default.
 #' @param delta.STD The error of the offset. Set to 0 by default.
 #' @param t.a First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).
-#' @param t.b Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution 
+#' @param t.b Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution approximate the normal distribution more).
+#' @param cc Calibration curve to be used, for glueing to a postbomb curve. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve). Normally not used (since this information is best provided within the .csv files), except in the case where there are postbomb dates (requiring the 'gluing' of pre- and postbomb curves).
 #' @param cc.dir Directory of calibration curve(s). Keep empty for the default value.
-# @param prob After the run, a fit of the model with the dates is calculated, as the ratio of model iterations that fit the hpd ranges of the dates. Defaults to the \code{prob=0.95} hpd ranges.
-#' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
+#' @param prob After the run, a fit of the model with the dates is calculated, as the ratio of model iterations that fit the hpd ranges of the dates. Defaults to the \code{prob=0.95} hpd ranges.
+#' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3). Defaults to no postbomb curve (\code{postbomb=FALSE}).
 #' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}. Needs more work probably.
 #' @param ask Whether or not to ask if a folder should be made (if required).
 #' @param talk Whether or not to provide feedback on folders written into and on what is happening.
+#' @param show.progress Whether or not to provide feedback on progress made with the run.
 #' @param clean.garbage Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.
 #' @param save.info Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.
 #' @param age.span Expected age span. Defaults to run from the current year in AD to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, age.span is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.
@@ -58,7 +62,7 @@
 #'
 #' Nicholls G, Jones M 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics) 50, 503-521.
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=100, thinning=c(), internal.thinning=c(), min.its=1e3, write.MCMC=FALSE, MCMC.dir=c(), remove.tmp=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc.dir=c(), prob=0.95, postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, show.progress=TRUE, clean.garbage=TRUE, save.info=TRUE, age.span=c(), ...) {
+strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=100, thinning=c(), internal.thinning=c(), min.its=1e3, write.MCMC=FALSE, MCMC.dir=c(), remove.tmp=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), prob=0.95, postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, show.progress=TRUE, clean.garbage=TRUE, save.info=TRUE, age.span=c(), ...) {
   start.time <- as.numeric(format(Sys.time(), "%s"))
   info <- read.strat(name, strat.dir, sep, normal, delta.R, delta.STD, t.a, t.b, cc)
   dat <- info$dets
@@ -153,9 +157,7 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     x.cc4 <- cc.energy(4, Dets, Dets.cc4, cc4, x, curves, Normal, ta, tb) # custom ccurve
 
     ### bugs:
-    ### plotted positions of any blocks beyond the first one (incorrectly assigning 'b' in structure function)
     ### exact gap if it goes counter to dates causes problems (check initvals)
-    ### cal BP date (cc=0)
 
     ### feature:
     ### add exact date as option. cc=0, error=0. How separate from other cc=0 dates?
@@ -182,8 +184,6 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
         to[above.block[[i]]] <- thisblock[o[1]]
         from[below.block[[i]]] <- thisblock[o[length(o)]] # ... and of oldest age
       }
-#	  if(reversal > 0)
-#		  cat("!") else cat(".")
       if(reversal > 0)
         l.x <- -Inf else
           l.x <- mapply(l.span, x[from], x[to], Age.span, M)
@@ -290,12 +290,15 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   info$struc <- struc
   info$output <- output
   info$Us <- Us
-  assign_to_global("info", info)
+  if(save.info)
+    assign_to_global("info", info)
 
   # draw the dates and relative information
-  #if(length(dat[,5] == 10) > 0)
-  #  y.scale <- "positions"
+  if(length(dat[,5] == 10) > 0) # sites with undated levels need to be plotted as positions
+    y.scale <- "positions"
+
   dates <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, min.its=min.its, ...)
+
 #  info <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
   info$dates <- dates
   if(length(struc$pos.gaps) > 0)

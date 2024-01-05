@@ -26,6 +26,7 @@ strat(
   delta.STD = 0,
   t.a = 3,
   t.b = 4,
+  cc = 1,
   cc.dir = c(),
   prob = 0.95,
   postbomb = FALSE,
@@ -43,6 +44,8 @@ strat(
 \item{name}{Name of the stratigraphy dataset. Defaults to \code{"mystrat"}.}
 
 \item{strat.dir}{The directory where the folders of the individual stratigraphies live. Defaults to \code{strat.dir="strats"}.}
+
+\item{run}{Whether or not to run the data. If set to FALSE, will try to load existing run data.}
 
 \item{its}{Amount of iterations to be run. Setting this to low numbers (e.g., 1000) will result in fast but less stable and less reliable runs. Higher values will take longer but result in more stable and robust runs. Defaults to \code{50000}. Aim to set this to such values that at least 3000 iterations remain after removing the burnin and thinning.}
 
@@ -78,17 +81,23 @@ strat(
 
 \item{t.a}{First parameter for the student-t distribution (defaults to 3; higher numbers make the distribution approximate the normal distribution more).}
 
-\item{t.b}{Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution}
+\item{t.b}{Second parameter for the student-t distribution (defaults to 4; higher numbers make the distribution approximate the normal distribution more).}
+
+\item{cc}{Calibration curve to be used, for glueing to a postbomb curve. Could be 1 (IntCal20; default), 2 (Marine20), 3 (SHCal20) or 4 (custom curve). Normally not used (since this information is best provided within the .csv files), except in the case where there are postbomb dates (requiring the 'gluing' of pre- and postbomb curves).}
 
 \item{cc.dir}{Directory of calibration curve(s). Keep empty for the default value.}
 
-\item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
+\item{prob}{After the run, a fit of the model with the dates is calculated, as the ratio of model iterations that fit the hpd ranges of the dates. Defaults to the \code{prob=0.95} hpd ranges.}
+
+\item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3). Defaults to no postbomb curve (\code{postbomb=FALSE}).}
 
 \item{BCAD}{The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}. Needs more work probably.}
 
 \item{ask}{Whether or not to ask if a folder should be made (if required).}
 
 \item{talk}{Whether or not to provide feedback on folders written into and on what is happening.}
+
+\item{show.progress}{Whether or not to provide feedback on progress made with the run.}
 
 \item{clean.garbage}{Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.}
 
@@ -106,14 +115,15 @@ Model radiocarbon dates (or dates that are already on the cal BP scale) of a dep
 }
 \details{
 Dates further down the sequence should have older ages than dates further up, even though owing to scatter, the dates themselves might not be in exact chronological order. The amount of scatter, the laboratory error and an offset can also be modelled.
-The function reads in a .csv file of a specific format. The first column contains the names of the dates/information, the second column has the age(s) (uncalibrated for radiocarbon dates, as they will be calibrated during the modelling), the third column their errors, the fourth column their position (see below), and the fifth column cc, the calibration curve information. Additional columns for the reservoir effect (delta.R and delta.STD) and the student-t model (t.a and t.b) can be added, much like rbacon .csv files.
+The function reads in a comma-separated-values (.csv) file of a specific format. The first column contains the names of the dates/information, the second column has the age(s) (uncalibrated for radiocarbon dates, as they will be calibrated during the modelling), the third column their errors, the fourth column their position (see below), and the fifth column cc, the calibration curve information. Additional columns for the reservoir effect (delta.R and delta.STD) and the student-t model (t.a and t.b) can be added, much like rbacon .csv files.
+The file should contain a header as the first row, named "lab ID", "age", "error", "position", and "cc" (with additional fields as per below if required). The extension of the file should be ".csv". 
 The positions of the dates (column 4) should be entered with the topmost, youngest levels first, and then working downward toward the oldest levels. The topmost position gets the lowest number (e.g., 0), and each subsequent entry should have a higher position number to ensure that the levels are ordered in time. Dates in 'blocks' where there is no known age ordering between the dates in the block (but where that block is known to be older than the level above it and younger than the level below it) should all get the same position in column 4.  
 The function does not only deal with dates (radiocarbon or otherwise), but can also model undated levels and a range of gaps between the dated levels. This is done mostly through column 5 in the .csv files, where a 0 is for dates on the cal BP scale, 1 for radiocarbon dates that require calibration with IntCal20, 2 with Marine20, 3 with SHCal20, 4 a custom calibration curve; additional information can be provided by adding entries for undated levels (cc=10), gaps of exactly known length (cc=11), normally distributed gap lengths (cc=12), or gamma distributed gap lengths (cc=13).
 The age estimates are obtained through a t-walk MCMC run (Christen and Fox 2010). In this process, initial ball-park point estimates for the ages of each dated depth are given, checked for their chronological ordering (and for the sizes of any gaps) and then modified through many iterations. For each iteration, a random dated depth is chosen and its age changed by just a little nudge, a check is performed to ensure that all age estimates remain in chronological order (and that gap sizes remain obeyed), and the 'energy' or likelihood of the age estimates is calculated (iterations where all ages fit well within the calibrated distributions receive a higher energy; see \code{l.calib}). 
 Then this iteration with the updated group of age estimates is either accepted or rejected. The acceptance probability depends on the iteration's energy; if its energy is higher than that of the previous iteration it is accepted, but if it is lower, it is accepted with a probability proportional to its relative energy. Therefore, over many iterations the process will 'learn' from the data and find high-energy combinations of parameter values that fit with the prior constraints that the ages should be ordered chronologically.
 Because the iterations are based on a process of modifying values of one parameter each iteration, and because some iterations will not be accepted, the MCMC output will often have a large degree of dependence between neighbouring iterations. Therefore, some thinning will have to be done, by storing only one every few iterations (default 20). Also, since the initial ball-park estimates could be quite wrong, the first 100 or so iterations should also be discarded (burnin). 
 It is thus important to check the time-series of the energy after the run. We don't want to see a remaining burn-in at the start, and we don't want to see a noticeable 'structure' where iterations remain in approximately or entirely the same spot for a long time. Instead, an ideal run will look like white noise.
-By default, the model output and the settings are stored in a list called `info'. For example, to retrieve the model output, type info$output. This has a column for each date, and a row for each stored MCMC iteration. The MCMC's energy can be found in info$Us. The model's `structure' such as blocks or gaps can be found in info$struc. To check which dates were used, type info$dets or info$dat (the latter will include all information, including any gaps).
+By default, the model output and the settings are stored in a list called `info' which is placed into R's session as a list. For example, to retrieve the model output, type info$output. This has a column for each date, and a row for each stored MCMC iteration. The MCMC's energy can be found in info$Us. The model's `structure' such as blocks or gaps can be found in info$struc. To check which dates were used, type info$dets or info$dat (the latter will include all information, including any gaps).
 }
 \examples{
 \dontrun{
