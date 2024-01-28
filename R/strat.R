@@ -62,7 +62,7 @@
 #'
 #' Nicholls G, Jones M 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics) 50, 503-521.
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=100, thinning=c(), internal.thinning=c(), min.its=1e3, write.MCMC=FALSE, MCMC.dir=c(), remove.tmp=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), prob=0.95, postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, show.progress=TRUE, clean.garbage=TRUE, save.info=TRUE, age.span=c(), ...) {
+strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=100, thinning=c(), internal.thinning=c(), min.its=1e3, write.MCMC=FALSE, MCMC.dir=tempdir(), remove.tmp=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), prob=0.95, postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, show.progress=TRUE, clean.garbage=TRUE, save.info=TRUE, age.span=c(), ...) {
   start.time <- as.numeric(format(Sys.time(), "%s"))
   info <- read.strat(name, strat.dir, sep, normal, delta.R, delta.STD, t.a, t.b, cc)
   dat <- info$dets
@@ -227,8 +227,7 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   # write temporary output to files if required (these can become huge!)
   out.fl <- c(); energy.fl <- c()
   if(write.MCMC) {
-	if(length(MCMC.dir) == 0)
-	  MCMC.dir <- tempdir()	  
+    message("writing temporary files to ", MCMC.dir)
     out.fl <- file.path(MCMC.dir, paste0(name, "_tmp.out"))
     energy.fl <- file.path(MCMC.dir, paste0(name, "_tmp_energy.out"))
     if(file.exists(out.fl))
@@ -264,8 +263,8 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     message("Removed a burn-in of ", burnin)
 
     # additional thinning after the run
-	# by default, takes the thinning value as suggested by rtwalk's IAT,
-	# but divided by 5 because proposed IAT values often result in very much thinning 
+    # by default, takes the thinning value as suggested by rtwalk's IAT,
+    # but divided by 5 because proposed IAT values often result in very much thinning
     if(length(thinning) == 0) 
       thinning <- ceiling(coffee::IAT(tw, 0, burnin, nrow(output))/5)
     message("Thinning the MCMC by storing every ", thinning, " iterations")

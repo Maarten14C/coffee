@@ -16,7 +16,6 @@
 
 # preparing the rings function to facilitate animations would also be helpful
 
-
 # ensure that functions such as pMC.age etc. are available immediately:
 library(rintcal)
 

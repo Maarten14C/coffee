@@ -89,7 +89,7 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   calib.mx <- 0
   for(i in 1:length(dates)) {
     tmp <- caldist(dets[dates[i],2], dets[dates[i],3], cc = dets[dates[i],5], cc.dir = cc.dir)
-	calib.mx <- max(calib.mx, tmp[, 2])
+    calib.mx <- max(calib.mx, tmp[, 2])
   }
   calib.ex <- .05 / (calib.mx * nrow(dets)^1.2)
   if(length(calibrated.ex) == 0) 

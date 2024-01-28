@@ -129,11 +129,10 @@ Runtwalk <- function(Tr, Obj, Supp, dat, dim = length(x0), x0=x0, xp0=xp0, at=6,
   write.MCMC <- ifelse(length(out.fl) == 0, FALSE, TRUE) 
 
   every <- ceiling(Tr/thinning) # find how many sub-runs to run
-  if(write.MCMC)
-	message("writing results to temporary folder (see 'tempdir()')") else {
+  if(!write.MCMC) {
       rec <- array(NA, dim=c(every, 2*c(1+length(x))))
       recacc <- array(NA, dim=c(every, 2))
-    }  
+  }
 
   if(show.progress)
     pb <- txtProgressBar(min=0, max=Tr, style = 3, char=">")

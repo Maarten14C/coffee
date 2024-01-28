@@ -62,7 +62,7 @@ Now that the coffee is brewing, let's imagine a tiramisu or spekkoek[^6]. A site
 ```{r, eval=FALSE}
 set.seed(123)
 sim.strat()
-strat(its=7e5) # note that this run will take long!
+strat(its=2e5) # note that this run will take a few minutes
 ```
 
 ```{r}
@@ -70,14 +70,15 @@ strat(its=7e5) # note that this run will take long!
 #   |>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>| 100%
 # Done running...
 # Removed a burn-in of 100
-# Thinning the MCMC by storing every 40 iterations
-# Mean overlap between calibrated and modelled dates 52.16%, ranging from 2.4% (date 2) to 59.2% (date 3)
-# Run took 15.15 minutes
+# Thinning the MCMC by storing every 8 iterations
+# 79.71% of the model ages fit within the 95% hpd ranges of the dates, 
+# with worst-fitting date 2 (51.38%) and best-fitting date 4 (93.89%)
+# Run took 3.17 minutes
 ```
 
 ![Fig. 2 - output of the strat function, from a simulated dataset of 5 chronologically ordered dated levels. The 'islands' or 'swimming elephants' reflect the age-modelled, chronologically constrained distributions (upward dark grey) and the individual calibrated distributions (downward light-grey). Black lines show the 95% modelled age ranges. Note that whereas the modelled distributions are in chronological order, some of the individually calibrated distributions show reversals.](./strat.png)
 
-Beside the graph itself, the model also reports the degree of overlap between the calibrated and modelled ages (an overlap of 100% indicates that the calibrated and modelled ages agree perfectly, whereas a small overlap such as 5% indicates outlying dates). The model's running time is also reported (we hope to be able to speed up the strats runs in the future).
+Beside the graph itself, the model also reports how well the modelled ages fit within the highest posterior density (hpd) ranges of the dates (if all modelled age iterations fit in any of a date's hpd ranges, its fit is 100%, and if half of the iterations fall outside of the hpd ranges, its fit it 50%). The model's running time is also reported (we hope to be able to speed up the strats runs in the future).
 
 Strat files are .csv files formatted like so:
 
@@ -91,7 +92,7 @@ Strat files are .csv files formatted like so:
 
 The positions of the dates are indicated in the fourth column. See below for more options such as gaps, undated levels or blocks of dates in a layer.
 
-Note that the above model uses 700,000 iterations and took around 13 minutes to run on a reasonably fast computer (it is hoped future versions of coffee will be able to run faster). It is recommendable to assess the influence of the MCMC settings on the model, and use sufficiently large sample sizes (at least 3,000 remaining iterations are recommended). Note that the thinning size is calculated from the MCMC run by default. In the following command, on purpose we are providing some bad initial point age estimates (but still in chronological order; 2 rows of initial ages are needed), storing every single iteration (both thinning and internal.thinning are set to 1), not removing the burn-in and performing a much-too-short run of only 2000 iterations:
+Note that the above model uses 200,000 iterations and took around 3 minutes to run on a reasonably fast computer (it is hoped future versions of coffee will be able to run faster). It is recommendable to assess the influence of the MCMC settings on the model, and use sufficiently large sample sizes (at least 3,000 remaining iterations are recommended, but the actual number will depend on the number of dates). Note that the thinning size is calculated from the MCMC run by default. In the following command, on purpose we are providing some bad initial point age estimates (but still in chronological order; 2 rows of initial ages are needed), storing every single iteration (both thinning and internal.thinning are set to 1), not removing the burn-in and performing a much-too-short run of only 2000 iterations:
 
 ```{r, eval=FALSE, fig.width=4, fig.asp=1.3}
 set.seed(234)
@@ -102,7 +103,7 @@ strat(burnin=0, thinning=1, internal.thinning=1, its=2000,
 
 ![Fig. 3 - output of a strat simulation with an overly short MCMC run. ](./strat_short.png)
 
-As can be seen from the top panel, the burnin of the above example took around 500 to 1000 iterations, and also clearly visible are long horizontal stretches that indicate parts of the MCMC where none of the proposed iterations could be accepted. Hence the need for thinning and much longer runs. Note that a warning is given that the run has to be done for longer.
+As can be seen from the top panel, the burnin of the above example took around 500 to 1000 iterations, and also clearly visible are long horizontal stretches that indicate parts of the MCMC where none of the proposed iterations could be accepted. Hence the need for thinning and much longer runs. 
 
 ### 2.1 stratigraphical features
 
@@ -126,14 +127,14 @@ Sometimes, layers might contain material which cannot be assumed to be in chrono
 Such sites can be modelled too (the blue shading indicates the dates within the block):
 
 ```{r, eval=FALSE, fig.width=4, fig.asp=1.3}
-strat("block_example", its=2e6, thinning=20, internal.thinning=20)
+strat("block_example", its=2e6, thinning=20, internal.thinning=20) # takes long to run
 ```
 
-![Fig. 4 - output of a strat simulation containing a 'block' of mixed dates, with the block in chronological order with the layers below and above it. ](./strat_block.png)
+![Fig. 4 - output of a strat simulation containing a 'block' of mixed dates, while the block is in chronological order with the layers below and above it. ](./strat_block.png)
 
 #### 2.1.2 undated levels
 
-If you're interested in modelling the ages of undated levels, in-between dated levels, this can be done in two ways. The first option is to add an undated level, by adding an entry to your .csv file and providing the number 10 in the fifth column, for example:
+If you're interested in modelling the ages of undated levels, in-between dated levels, this can be done in two ways. The first option is to add an undated level, by adding an entry to your .csv file and providing the number 10 in the fifth (=cc) column, for example:
 
 | lab ID  | age   | error | position | cc |
 | ------  | ----- | ----- | -------- | -- |
@@ -149,16 +150,16 @@ If you're interested in modelling the ages of undated levels, in-between dated l
 Any name can be given for the lab ID, and the age and error should be left empty. Make sure that the position of the undated level is such that the positions are increasing going down the file. Then run as:
 
 ```{r, eval=FALSE}
-strat("undated_example") # will need a longer run for reliable results (the example below used 4 million iterations)
+strat("undated_example") # will need a longer run for reliable results (the example below used 600,000 iterations)
 ```
 ```
 # The run's files will be put in this folder: strats/undated_example
 #   |>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>| 100%
 # Done running...
 # Removed a burn-in of 100
-# Thinning the MCMC by storing every 10 iterations
-# Mean overlap between calibrated and modelled dates 65.54%, ranging from 27.6% (date 8) to 99% (date 2)
-# Run took 1.01 hours
+# Thinning the MCMC by storing every 19 iterations
+# 83.54% of the model ages fit within the 95% hpd ranges of the dates, with worst-fitting date 8 (55.44%) and best-fitting date 7 (96.42%)
+# Run took 8.15 minutes
 ```
 
 ![Fig. 5 - output of a strat simulation containing an undated level, at position 5. This modelled age has no accompanying light-grey 'shadow' (which is for calibrated distributions only). ](./strat_undated.png)
@@ -193,16 +194,16 @@ In some instances, there could be information about the time gaps between dated 
 Here, an exact gap is indicated with cc=11, and the size of the gap is placed in the age field (no error to be added). For a normally distributed gap size, add cc=12, and the mean and standard error go in the age and error fields respectively. For a gamma distributed gap size, add cc=13, and enter the mean and shape in the age and error fields respectively.
 
 ```{r, eval=FALSE}
-strat("gaps_example") # will need a longer run for reliable results (the example below used 1 million iterations)
+strat("gaps_example") # will need a longer run for reliable results (the example below used 1 million iterations, followed by thinning using the thinner() function)
 ```
 ```
 # The run's files will be put in this folder: strats/gaps_example
 #   |>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>| 100%
 # Done running...
 # Removed a burn-in of 100
-# Thinning the MCMC by storing every 15 iterations
-# Mean overlap between calibrated and modelled dates 53.29%, ranging from 22% (date 6) to 73.8% (date 3)
-# Run took 15.15 minutes
+# Thinning the MCMC by storing every 7 iterations
+# 86.3% of the model ages fit within the 95% hpd ranges of the dates, with worst-fitting date 7 (72.34%) and best-fitting date 3 (96.38%)
+# Run took 14.52 minutes
 ```
 ![Fig. 6 - output of a strat simulation containing gaps between dated levels; an exact gap between positions 1 and 2 (Ex(200)), a normally distributed one between positions 3 and 4 (N(100,20)), and a gamma distributed one between positions 5 and 6 (Ga(100,2)). Blue diagonal lines indicate the size and nature of the gaps. Note that the modelled (dark grey) distributions of dates 1 and 2 are the exact same shape, but shifted by exactly 200 years. The shapes of the modelled distributions surrounding the normal and gamma gaps show only some similarity. ](./strat_gaps.png){width=70%}
 
@@ -216,7 +217,7 @@ For more help, type `?strat`.
 
 [^4]: Hogg et al. 2020. SHCal20 Southern Hemisphere calibration, 0-55,000 years cal BP. *Radiocarbon* 62, 759-778
 
-[^5]: please check the vignettes at https://cran.r-project.org/package=rbacon
+[^5]: please check the vignette at https://cran.r-project.org/package=rbacon
 
 [^6]: https://en.wikipedia.org/wiki/Spekkoek
 

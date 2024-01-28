@@ -14,7 +14,7 @@ strat(
   internal.thinning = c(),
   min.its = 1000,
   write.MCMC = FALSE,
-  MCMC.dir = c(),
+  MCMC.dir = tempdir(),
   remove.tmp = TRUE,
   init.ages = c(),
   ballpark.method = 2,
