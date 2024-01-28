@@ -399,6 +399,16 @@ ages.undated <- function(position, set=get('info'), draw=TRUE) {
 
 
 # for all model age estimates, check if they fall within one of the hpd ranges of the dates
+#' @name within.hpd
+#' @title Calculate the fit of a modelled age with the corresponding date
+
+#' @description This is a measure of the fit of the modelled age to that of the date. If many of the modelled age iterations fall within any of the highest posterior density (hpd) range of a date, the model fits the date well. The values can range from 0% (no fit, no modelled ages fall within any of the date's hpd ranges) to 100% (excellent fit).
+#' @param calibs The calibrated ages of the distributions (dates)
+#' @param probs The probabilities associated with the calibrated ages (dates)
+#' @param modelled The modelled ages
+#' @param prob Probability range for the hpd ranges
+#' @return a list of fits (values between 0 and 100%) for each date
+#' @export
 within.hpd <- function(calibs, probs, modelled, prob=.95) {
   fits <- c()
   # for each modelled age, find the height on the date's distribution (peak=1)

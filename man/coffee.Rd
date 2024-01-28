@@ -2,8 +2,8 @@
 % Please edit documentation in R/coffee-package.R
 \docType{package}
 \name{coffee}
-\alias{coffee}
 \alias{coffee-package}
+\alias{coffee}
 \title{coffee}
 \description{
 While individual calibrated radiocarbon dates can span several centuries, combining multiple dates together with any chronological constraints can make a chronology much more robust and precise. This package, an acronym of Chronological Ordering For Fossils and Environmental Events, uses Bayesian methods to enforce the chronological ordering of radiocarbon and other dates, for example for trees with multiple radiocarbon dates spaced at exactly known intervals (e.g., every 10 annual rings; Christen 2003). Another example is sites where the relative chronological position of the dates is taken into account - the ages of dates further down a site must be older than those of dates further up (e.g., Buck et al. 1991). MCMC runs are done using the t-walk (Christen and Fox 2010).
