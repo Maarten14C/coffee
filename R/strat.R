@@ -66,7 +66,7 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   start.time <- as.numeric(format(Sys.time(), "%s"))
   info <- read.strat(name, strat.dir, sep, normal, delta.R, delta.STD, t.a, t.b, cc)
   dat <- info$dets
-  struc <- structure(dat) # find the structure of the data frame. Will be saved into 'info' later on
+  struc <- structure(dat) # find the structure of the data frame. Will be saved into 'info' later on. 
   dets <- dat[which(struc$is.age),]
   gaps <- dat[which(struc$is.gap),]
 
@@ -293,9 +293,8 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     assign_to_global("info", info)
 
   # draw the dates and relative information
-  if(length(dat[,5] == 10) > 0) # sites with undated levels need to be plotted as positions
-    y.scale <- "positions"
-
+  # if(length(dat[,5] == 10) > 0) # sites with undated levels need to be plotted as positions
+  #   y.scale <- "positions"
   dates <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, min.its=min.its, ...)
 
 #  info <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
@@ -315,13 +314,13 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     o <- order(within.hpds)
     pos.dates <- struc$pos.dates[o]
     message(round(mean(within.hpds),2),
-	  "% of the model ages fit within the ", 100*prob, 
-	  "% hpd ranges of the dates, with worst-fitting date ", 
-	  pos.dates[1], " (",
+      "% of the model ages fit within the ", 100*prob,
+      "% hpd ranges of the dates, with worst-fitting date ",
+      pos.dates[1], " (",
       round(min(within.hpds),2), 
-	  "%) and best-fitting date ", 
-	  pos.dates[length(pos.dates)], 
-	  " (", round(max(within.hpds),2), "%)")
+      "%) and best-fitting date ",
+      pos.dates[length(pos.dates)],
+      " (", round(max(within.hpds),2), "%)")
 
     took <- as.numeric(format(Sys.time(), "%s")) - start.time
     if(run)

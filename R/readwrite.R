@@ -167,10 +167,10 @@ structure <- function(dat) {
     above.uniform <- which(dat[,5] == 14) - 1
 
     # now find the corresponding dets entries, based on the positions
-    above.exact <- which(dets[,4] == dat[above.exact,4])
-    above.normal <- which(dets[,4] == dat[above.normal,4])
-    above.gamma <- which(dets[,4] == dat[above.gamma,4])
-    above.uniform <- which(dets[,4] == dat[above.uniform,4])
+    above.exact <- which(dets[,4] %in% dat[above.exact,4])
+    above.normal <- which(dets[,4] %in% dat[above.normal,4])
+    above.gamma <- which(dets[,4] %in% dat[above.gamma,4])
+    above.uniform <- which(dets[,4] %in% dat[above.uniform,4])
 
     # positions in the gap variable
     is.exact <- which(gaps[,5] == 11)

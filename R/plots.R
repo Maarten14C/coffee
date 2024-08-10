@@ -142,7 +142,8 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   if(structure$has.gaps) {
     gaps <- structure$gaps
     for(i in 1:nrow(gaps)) {
-      above <- max(which(structure$p < gaps[i,4]))
+      # above <- max(which(structure$p < gaps[i,4])) # commented 29 April 2024
+      above <- max(which(dets[,4] < gaps[i,4])) # p is the position index, whereas gaps[i,4] is the position "number"
       side <- ifelse(gap.pos==1, 1, 2)
       if(gap.pos==1) {
         age.above <- max(hpds[[above]][,-3])
