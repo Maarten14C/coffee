@@ -1,5 +1,5 @@
 ## Test environments
-* local Mac install, R 4.2.2
+* local Fedora Linux 40 install, R 4.4.1
 * win-builder (devel and release)
 * rhub
 

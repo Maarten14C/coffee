@@ -5,7 +5,7 @@
 \title{wiggle-match C-14 dating of a tree}
 \usage{
 rings(
-  name = "mytree",
+  name = "Ulandryk",
   tree.dir = "trees",
   sep = ",",
   normal = FALSE,

@@ -1,5 +1,5 @@
 # todo:
-# check strat with calendar dates (e.g. scroll) - do we need an upper boundary? Also add coffee.cleanup function because changing data in the .csv file doesn't always seem to feed through
+# check strat with calendar dates - do we need an upper boundary? Also add coffee.cleanup function because changing data in the .csv file doesn't always seem to feed through
 # plot: gaps are not plotted on the right depth if there's a block above them
 
 # dates close to 0 14C BP (e.g. 260 +- 20) go wrong - too close to end cc? Add option youngest.age???
@@ -15,7 +15,7 @@
 # preparing the rings function to facilitate animations would also be helpful
 
 # ensure that functions such as pMC.age etc. are available immediately:
-library(rintcal)
+library(rice)
 
 ### some internal functions to write and read things
 

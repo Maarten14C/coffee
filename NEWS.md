@@ -1,3 +1,7 @@
+# coffee 0.4.0
+* now linking to both the 'rice' and 'rintcal' packages
+* updated how gaps in strats are plotted
+
 # coffee 0.3.0
 * updated the vignette
 * added functions scissors and thinner for manipulation of MCMC output

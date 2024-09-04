@@ -1,15 +1,53 @@
-bibentry("Article",
-author = "Maarten Blaauw and Marco Aquino-L{\'o}pez and J. Andr{\'e}s Christen",
-title = "Modelling chronologically ordered radiocarbon dates in R",
-journal = "Radiocarbon",
-volume = "",
-number = "",
-pages = " -- ",
-keywords = "Bayesian modeling, Calibration, Chronology, Stratigraphy, wiggle--match dating",
-year = "2024",
-doi = "",
-URL = "",
+bibentry(
+    bibtype = "Manual",
+    title = "coffee: Chronological Ordering for Fossils and Environmental Events",
+    author = person("Maarten", "Blaauw"),
+    year = "2024",
+    url = "https://CRAN.R-project.org/package=coffee"
+  )
 
-textVersion =
-    "Blaauw, M., Aquino, M., Christen, J.A., submitted. Modelling chronologically ordered radiocarbon dates in R. Radiocarbon"
+blaauw2010 <- bibentry("Article",
+  author = "Maarten Blaauw and Marco Aquino-L{\'o}pez and J. Andr{\'e}s Christen",
+  title = "Modelling chronologically ordered radiocarbon dates in R",
+  journal = "Radiocarbon",
+  volume = "",
+  number = "",
+  pages = " -- ",
+  keywords = "Bayesian modeling, Calibration, Chronology, Stratigraphy, wiggle--match dating",
+  year = "2024",
+  doi = "",
+  URL = "",
+  textVersion = "Blaauw, M., Aquino, M., Christen, J.A., in press. Modelling chronologically ordered radiocarbon dates in R. Radiocarbon")
+
+christen2003 <- bibentry("Article",
+  author = "J. Andr{\'e}s Christen",
+  title = "Bwigg: An Internet facility for Bayesian radiocarbon wiggle-matching",
+  journal = "Internet Archaeology",
+  volume = "13",
+  year = "2003",
+  doi = "10.11141/ia.13.2",
+  textVersion = "Andrés Christen, J. 2003. Bwigg: An Internet facility for Bayesian radiocarbon wiggle-matching. Internet Archaeology 13 <doi:10.11141/ia.13.2>"
+)
+
+bucketal1991 <- bibentry("Article",
+  author = "C.E. Buck and J.B. Kenworthy and C.D. Litton and A.F.M. Smith",
+  title = "Combining archaeological and radiocarbon information: a Bayesian approach to calibration",
+  journal = "Antiquity",
+  volume = "13",
+  number = "249",
+  pages = "808--821",
+  year = "2003",
+  doi = "10.11141/ia.13.2",
+  textVersion = "Buck, C.E., Kenworthy, J.B., Litton, C.D., Smith, A.F.M., 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. Antiquity. 1991;65(249):808-821. doi:10.1017/S0003598X00080534"
+)
+
+nichollsjones <- bibentry("Article",
+  author = "G. Nicholls and M. Jones",
+  title = "Radiocarbon dating with temporal order constraints",
+  journal = "Journal of the Royal Statistical Society: Series C (Applied Statistics)",
+  volume = "50",
+  pages = "503--521",
+  year = "2001",
+  doi = "10.1111/1467-9876.00250",
+  textVersion = "Nicholls, G., Jones, M., 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics), 50: 503-521. https://doi.org/10.1111/1467-9876.00250"
 )

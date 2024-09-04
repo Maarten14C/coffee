@@ -9,7 +9,7 @@ vignette: >
 
 Chronological Ordering For Fossils and Environmental Events can be acronymised to *coffee*. While individual calibrated radiocarbon dates can span several centuries, combining multiple dates together with any chronological constraints can make a chronology much more robust and precise.
 
-This package uses Bayesian methods to enforce the chronological ordering of radiocarbon and other dates, for example for trees with multiple radiocarbon dates spaced at exactly known intervals (e.g., 10 annual rings). Another example is sites where the relative chronological position of the dates is taken into account - the ages of dates further down a site or core must be older than those of dates further up.
+This package uses Bayesian methods to enforce the chronological ordering of radiocarbon and other dates, for example for trees with multiple radiocarbon dates spaced at exactly known intervals (e.g., 10 annual rings). Another example is sites where the relative chronological position of the dates is taken into account - the ages of dates further down a site or core must be older than those of dates further up. For further details, see Blaauw et al. 2024[^1].
 
 On first usage of the package, it has to be installed: 
 
@@ -26,7 +26,7 @@ library(coffee)
 
 ## 1. tree rings
 
-Let's simulate the radiocarbon dating of a tree with 400 rings, which started growing in AD 950 (1000 cal BP), with rings radiocarbon dated at regularly spaced 20-yr intervals, and then wiggle-match it using a Bayesian framework (Christen and Litton 1995[^1]):
+Let's simulate the radiocarbon dating of a tree with 400 rings, which started growing in AD 950 (1000 cal BP), with rings radiocarbon dated at regularly spaced 20-yr intervals, and then wiggle-match it using a Bayesian framework (Christen and Litton 1995[^2]):
 
 ```{r, fig.width=4, fig.asp=1.3}
 sim.rings(age.start=1000, length=400, gaps=20)
@@ -47,7 +47,7 @@ The file containing the dates should have the following formatting (only the fir
 | 18884  | 709  | 21    | 340  |  1  |
 | 18885  | 733  | 23    | 320  |  1  |
 
-The fourth column should contain the ring number, starting with the youngest, outermost ring and working down backwards in time toward the date of the oldest, innermost ring. The above dates are calibrated using IntCal20 (Reimer et al. 2020[^2]) through supplying cc=1; Marine20 (Heaton et al. 2020[^3], cc=2), SHCal20 (Hogg et al. 2020[^4], cc=3) or a tailor-made calibration curve (cc=4) can also be used. Dates that are already on the cal BP scale get cc=0. As with rbacon's .csv files[^5], additional columns can be added to deal with reservoir offsets (mean and error; columns 6 and 7) and to provide parameters for the student-t distribution (t.a and t.b; columns 8 and 9). 
+The fourth column should contain the ring number, starting with the youngest, outermost ring and working down backwards in time toward the date of the oldest, innermost ring. The above dates are calibrated using IntCal20 (Reimer et al. 2020[^3]) through supplying cc=1; Marine20 (Heaton et al. 2020[^4], cc=2), SHCal20 (Hogg et al. 2020[^5], cc=3) or a tailor-made calibration curve (cc=4) can also be used. Dates that are already on the cal BP scale get cc=0. As with rbacon's .csv files[^6], additional columns can be added to deal with reservoir offsets (mean and error; columns 6 and 7) and to provide parameters for the student-t distribution (t.a and t.b; columns 8 and 9).
 
 For more information, ask for help:
 
@@ -57,7 +57,7 @@ For more information, ask for help:
 
 ## 2. stratigraphy
 
-Now that the coffee is brewing, let's imagine a tiramisu or spekkoek[^6]. A site's stratigraphy can be age-modelled by assuming chronological ordering of the layers and dates according to their relative position, with levels further down a site assumed to be older than those above them. This can too be done within a Bayesian framework (e.g., Buck et al. 1991[^7]):
+Now that the coffee is brewing, let's imagine a tiramisu or spekkoek[^7]. A site's stratigraphy can be age-modelled by assuming chronological ordering of the layers and dates according to their relative position, with levels further down a site assumed to be older than those above them. This can too be done within a Bayesian framework (e.g., Buck et al. 1991[^8]):
 
 ```{r, eval=FALSE}
 set.seed(123)
@@ -71,14 +71,14 @@ strat(its=2e5) # note that this run will take a few minutes
 # Done running...
 # Removed a burn-in of 100
 # Thinning the MCMC by storing every 8 iterations
-# 79.71% of the model ages fit within the 95% hpd ranges of the dates, 
+# 79.71% of the model's ages fit within the 95% hpd ranges of the dates,
 # with worst-fitting date 2 (51.38%) and best-fitting date 4 (93.89%)
 # Run took 3.17 minutes
 ```
 
 ![Fig. 2 - output of the strat function, from a simulated dataset of 5 chronologically ordered dated levels. The 'islands' or 'swimming elephants' reflect the age-modelled, chronologically constrained distributions (upward dark grey) and the individual calibrated distributions (downward light-grey). Black lines show the 95% modelled age ranges. Note that whereas the modelled distributions are in chronological order, some of the individually calibrated distributions show reversals.](./strat.png)
 
-Beside the graph itself, the model also reports how well the modelled ages fit within the highest posterior density (hpd) ranges of the dates (if all modelled age iterations fit in any of a date's hpd ranges, its fit is 100%, and if half of the iterations fall outside of the hpd ranges, its fit it 50%). The model's running time is also reported (we hope to be able to speed up the strats runs in the future).
+Beside the graph itself, the model also reports how well the modelled ages fit within the highest posterior density (hpd) ranges of the dates (if all modelled age iterations fit in any of a date's hpd ranges, its fit is 100%, and if, say, only half of the iterations fall inside of the hpd ranges, its fit it 50%). The model's running time is also reported (we hope to be able to speed up the strats runs in the future).
 
 Strat files are .csv files formatted like so:
 
@@ -92,7 +92,7 @@ Strat files are .csv files formatted like so:
 
 The positions of the dates are indicated in the fourth column. See below for more options such as gaps, undated levels or blocks of dates in a layer.
 
-Note that the above model uses 200,000 iterations and took around 3 minutes to run on a reasonably fast computer (it is hoped future versions of coffee will be able to run faster). It is recommendable to assess the influence of the MCMC settings on the model, and use sufficiently large sample sizes (at least 3,000 remaining iterations are recommended, but the actual number will depend on the number of dates). Note that the thinning size is calculated from the MCMC run by default. In the following command, on purpose we are providing some bad initial point age estimates (but still in chronological order; 2 rows of initial ages are needed), storing every single iteration (both thinning and internal.thinning are set to 1), not removing the burn-in and performing a much-too-short run of only 2000 iterations:
+Note that the above model uses 200,000 iterations and took around 3 minutes to run on a reasonably fast computer (it is hoped future versions of 'coffee' will be able to run faster). It is recommendable to assess the influence of the MCMC settings on the model, and use sufficiently large sample sizes (at least 3,000 remaining iterations are recommended, but the actual number will depend on the number of dates). Note that the thinning size is calculated from the MCMC run by default. In the following command, on purpose we are providing some bad initial point age estimates (but still in chronological order; 2 rows of initial ages are needed), storing every single iteration (both thinning and internal.thinning are set to 1), not removing the burn-in and performing a much-too-short run of only 2000 iterations:
 
 ```{r, eval=FALSE, fig.width=4, fig.asp=1.3}
 set.seed(234)
@@ -158,7 +158,7 @@ strat("undated_example") # will need a longer run for reliable results (the exam
 # Done running...
 # Removed a burn-in of 100
 # Thinning the MCMC by storing every 19 iterations
-# 83.54% of the model ages fit within the 95% hpd ranges of the dates, with worst-fitting date 8 (55.44%) and best-fitting date 7 (96.42%)
+# 83.54% of the model's ages fit within the 95% hpd ranges of the dates, with worst-fitting date 8 (55.44%) and best-fitting date 7 (96.42%)
 # Run took 8.15 minutes
 ```
 
@@ -202,23 +202,25 @@ strat("gaps_example") # will need a longer run for reliable results (the example
 # Done running...
 # Removed a burn-in of 100
 # Thinning the MCMC by storing every 7 iterations
-# 86.3% of the model ages fit within the 95% hpd ranges of the dates, with worst-fitting date 7 (72.34%) and best-fitting date 3 (96.38%)
+# 86.3% of the model's ages fit within the 95% hpd ranges of the dates, with worst-fitting date 7 (72.34%) and best-fitting date 3 (96.38%)
 # Run took 14.52 minutes
 ```
 ![Fig. 6 - output of a strat simulation containing gaps between dated levels; an exact gap between positions 1 and 2 (Ex(200)), a normally distributed one between positions 3 and 4 (N(100,20)), and a gamma distributed one between positions 5 and 6 (Ga(100,2)). Blue diagonal lines indicate the size and nature of the gaps. Note that the modelled (dark grey) distributions of dates 1 and 2 are the exact same shape, but shifted by exactly 200 years. The shapes of the modelled distributions surrounding the normal and gamma gaps show only some similarity. ](./strat_gaps.png){width=70%}
 
 For more help, type `?strat`.
 
-[^1]: Christen JA, Litton CD, 1995. A Bayesian approach to wiggle-matching. *Journal of Archaeological Science* 22, 719-725
+[^1]: Blaauw M, Aquino-Lopez MA, Christen JA, in press. Modelling chronologically ordered radiocarbon dates in R. *Radiocarbon*
 
-[^2]: Reimer PJ et al. 2020. The IntCal20 Northern Hemisphere radiocarbon age calibration curve (0-55 cal kBP). *Radiocarbon* 62, 725-757
+[^2]: Christen JA, Litton CD, 1995. A Bayesian approach to wiggle-matching. *Journal of Archaeological Science* 22, 719-725
 
-[^3]: Heaton et al. 2020. Marine20-the marine radiocarbon age calibration curve (0-55,000 cal BP). *Radiocarbon* 62, 779-820
+[^3]: Reimer PJ et al. 2020. The IntCal20 Northern Hemisphere radiocarbon age calibration curve (0-55 cal kBP). *Radiocarbon* 62, 725-757
 
-[^4]: Hogg et al. 2020. SHCal20 Southern Hemisphere calibration, 0-55,000 years cal BP. *Radiocarbon* 62, 759-778
+[^4]: Heaton et al. 2020. Marine20-the marine radiocarbon age calibration curve (0-55,000 cal BP). *Radiocarbon* 62, 779-820
 
-[^5]: please check the vignette at https://cran.r-project.org/package=rbacon
+[^5]: Hogg et al. 2020. SHCal20 Southern Hemisphere calibration, 0-55,000 years cal BP. *Radiocarbon* 62, 759-778
 
-[^6]: https://en.wikipedia.org/wiki/Spekkoek
+[^6]: please check the vignette at https://cran.r-project.org/package=rbacon
 
-[^7]: Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. *Antiquity* 65, 808-821.
+[^7]: https://en.wikipedia.org/wiki/Spekkoek
+
+[^8]: Buck CE, Kenworthy JB, Litton CD, Smith AFM, 1991. Combining archaeological and radiocarbon information: a Bayesian approach to calibration. *Antiquity* 65, 808-821.

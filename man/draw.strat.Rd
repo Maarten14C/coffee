@@ -72,7 +72,7 @@ draw.strat(
 
 \item{calibrated.up}{Whether the calibrated distributions should be drawn upward or downward (the default, resembling the reflections of islands in the sea, or swimming animals if you wish)}
 
-\item{modelled.ex}{Exaggaration of the heights of the age-modelled distributions. Calculated automatically by default. Note that more precise ages peak higher than ages with lower precision.}
+\item{modelled.ex}{Exaggeration of the heights of the age-modelled distributions. Calculated automatically by default. Note that more precise ages peak higher than ages with lower precision.}
 
 \item{modelled.mirror}{Whether or not the age-modelled distributions should be drawn both up and down, quite a bit like fish or swans. Defaults to FALSE.}
 

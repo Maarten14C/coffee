@@ -98,19 +98,19 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   if(length(rc) > 0)
     if(min(rc) < 100) { # has postbomb dates (or close to being postbomb), which are terrestrial only. Check how rintcal's calibrate covers this
       if(1 %in% ccs) # NH
-        cc.1 <- rintcal::glue.ccurves(1, postbomb, cc.dir)
+        cc.1 <- glue.ccurves(1, postbomb, cc.dir)
       if(3 %in% ccs) # SH
-        cc.3 <- rintcal::glue.ccurves(3, postbomb, cc.dir)
+        cc.3 <- glue.ccurves(3, postbomb, cc.dir)
     } else {
         if(1 %in% ccs) # NH
-          cc.1 <- rintcal::ccurve(1, FALSE, cc.dir)
+          cc.1 <- ccurve(1, FALSE, cc.dir)
         if(3 %in% ccs) # SH
-          cc.3 <- rintcal::ccurve(3, FALSE, cc.dir)
+          cc.3 <- ccurve(3, FALSE, cc.dir)
       }
   if(2 %in% ccs)
-    cc.2 <- rintcal::ccurve(2, FALSE, cc.dir)
+    cc.2 <- ccurve(2, FALSE, cc.dir)
   if(4 %in% ccs)
-    cc.4 <- rintcal::ccurve(4, FALSE, cc.dir)
+    cc.4 <- ccurve(4, FALSE, cc.dir)
 
   # prepopulate non-varying values for the energy function
   dets.cc0 <- which(dets[,5] == 0) 
@@ -314,7 +314,7 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     o <- order(within.hpds)
     pos.dates <- struc$pos.dates[o]
     message(round(mean(within.hpds),2),
-      "% of the model ages fit within the ", 100*prob,
+      "% of the model's ages fit within the ", 100*prob,
       "% hpd ranges of the dates, with worst-fitting date ",
       pos.dates[1], " (",
       round(min(within.hpds),2), 

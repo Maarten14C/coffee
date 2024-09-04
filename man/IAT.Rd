@@ -19,7 +19,7 @@ IAT(set, par = 0, from = 1, to)
 The IAT value
 }
 \description{
-Calculate the Tntegrated Autocorrelation Time, which gives the proposed value for thinning. E.g., if the IAT is 80, it is good to thin the MCMC run by storing only every 80 iterations. This method is slower than GetAutoCov, but much better.
+Calculate the Integrated Autocorrelation Time, which gives the proposed value for thinning. E.g., if the IAT is 80, it is good to thin the MCMC run by storing only every 80 iterations. This method is slower than GetAutoCov, but much better.
 }
 \author{
 Andres Christen
