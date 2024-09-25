@@ -227,7 +227,7 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
   if(length(out) == 0)
     out <- read.table(file.path(tree.dir, name, paste0(name, "_probs.txt")), header=TRUE, sep="\t")
   if(length(cc) == 1)
-    cc <- ccurve(1, postbomb)
+    cc <- rintcal::ccurve(1, postbomb)
 
   if(length(y2.lim) > 0)
     C14.lim <- y2.lim else

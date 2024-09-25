@@ -29,10 +29,10 @@ sim.rings <- function(name="mytree", age.start=1000, length=400, gaps=20, offset
     sim.tree <- seq(age.start-length, age.start, by=gaps) else
       sim.tree <- rev(age.start - gaps)
 
-  cc <- ccurve(cc, postbomb)
+  cc <- rintcal::ccurve(cc, postbomb)
   if(age.start-length < 0)
     if(postbomb)
-      cc <- glue.ccurves(cc,postbomb) else
+      cc <- rintcal::glue.ccurves(cc,postbomb) else
         stop("for years younger than 0 cal BP (after AD 1950), a postbomb curve has to be defined (e.g., 1, 2, 3, 4 or 5", .call=FALSE)
 
   sim.y <- approx(cc[,1], cc[,2], sim.tree)$y + offset
@@ -81,9 +81,9 @@ sim.strat <- function(name="mystrat", age.min=4321, length=800, n=5, offset=0, s
   truth <- round(age.min + (length * (truth/max(truth))), digits=rounded)
 
   if(age.min > 0)
-    ccc <- ccurve(cc, postbomb) else
+    ccc <- rintcal::ccurve(cc, postbomb) else
       if(postbomb)
-        ccc <- glue.ccurves(cc,postbomb) else
+        ccc <- rintcal::glue.ccurves(cc,postbomb) else
           stop("for years younger than 0 cal BP (after AD 1950), a postbomb curve has to be defined (e.g., 1, 2, 3, 4 or 5", .call=FALSE)
 
   # simulate the dating

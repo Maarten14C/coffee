@@ -18,6 +18,7 @@
 #' @importFrom stats approx dbeta density dgamma dnorm dunif lm quantile rnorm weighted.mean coef median cor runif var as.ts na.omit
 #' @importFrom utils read.csv read.table write.table packageName txtProgressBar setTxtProgressBar
 #' @importFrom data.table fread fwrite
+#' @importFrom rintcal ccurve glue.ccurves
 #' @import rice
 #' @name coffee
 #' @keywords internal

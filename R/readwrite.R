@@ -18,6 +18,7 @@ fastwrite <- function(out, fnam, ...)
 
 # read the dets file of a strat site
 read.strat <- function(name="mystrat", strat.dir="strats", sep=",", normal=TRUE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1) {
+  basestratdir <- strat.dir	
   stratdir <- assign_dir(strat.dir, name, "strat.dir", ask=FALSE)
   if(name %in% c("block_example", "undated_example", "gaps_example"))
     file.copy(system.file(file.path("extdata",
@@ -50,7 +51,7 @@ read.strat <- function(name="mystrat", strat.dir="strats", sep=",", normal=TRUE,
       t.a <- dat[,8]
       t.b <- dat[,9]
     }
-  return(list(dets=dat, normal=normal, t.a=t.a, t.b=t.b, delta.R=delta.R, delta.STD=delta.STD))
+  return(list(name=name, basestratdir=basestratdir, dets=dat, normal=normal, t.a=t.a, t.b=t.b, delta.R=delta.R, delta.STD=delta.STD))
 }
 
 
@@ -352,3 +353,21 @@ thinner <- function(proportion=0.1, set=get('info'), write=TRUE, save.info=TRUE)
     assign_to_global("info", set)
   invisible(set)
 }
+
+
+
+#' @name strat.cleanup
+#' @title Remove .out files from a run
+#' @description Remove all .out files in the folder of a strat file.
+#' @param set Detailed information of the current run, stored within this session's memory as variable \code{info}.
+#' @return NA
+#' @export
+strat.cleanup <- function(set=get('info')) {
+  fl <- list.files(file.path(set$basestratdir, set$name), pattern="*.out", full.names=T)
+  if(length(fl) > 0) {
+    bin <- file.remove(fl)	
+    message("removed .out files")
+  } else
+    message("all clean")
+}
+

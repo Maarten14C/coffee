@@ -88,7 +88,7 @@ rings <- function(name="Ulandryk", tree.dir="trees", sep=",", normal=FALSE, delt
   # MCMC not required or recommendable here; all calendar years in the relevant section are calculated
   if(ncol(dat) > 4)
     cc <- unique(dat[which(dat[,5] %in% 1:4),5])[1] # only use 1 entry
-  cc <- ccurve(cc, postbomb)
+  cc <- rintcal::ccurve(cc, postbomb)
   
   cc.min <- max(1, which(cc[,2] <= (max(dat[,2]+times*dat[,3]))))
   cc.max <- min(nrow(cc), which(cc[,2] >= min(dat[,2]-times*dat[,3])))
