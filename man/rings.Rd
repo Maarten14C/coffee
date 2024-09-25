@@ -99,7 +99,7 @@ Christen JA, 2003. Bwigg: An Internet facility for Bayesian radiocarbon wiggle-m
 
 Christen JA, Perez S, 2009. A new robust statistical model for radiocarbon data. Radiocarbon 51, 1047-1059
 
-Kuzmin Y, Slusarenko I, Hajdas I, Bonani G, Christen JA. 2004. The comparison of 14C wiggle-matching results for the ‘floating’ tree-ring chronology of the Ulandryk-4 Burial Ground (Altai Mountains, Siberia). Radiocarbon 46, 943–948.
+Kuzmin Y, Slusarenko I, Hajdas I, Bonani G, Christen JA. 2004. The comparison of 14C wiggle-matching results for the 'floating' tree-ring chronology of the Ulandryk-4 Burial Ground (Altai Mountains, Siberia). Radiocarbon 46, 943–948.
 }
 \author{
 Maarten Blaauw, J. Andres Christen
