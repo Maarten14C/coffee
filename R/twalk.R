@@ -143,6 +143,7 @@ Runtwalk <- function(Tr, Obj, Supp, dat, dim = length(x0), x0=x0, xp0=xp0, at=6,
       if(i %% 100)
         setTxtProgressBar(pb, i)
     move <- OneMove(dim=dim, Obj=Obj, Supp=Supp, x, U, xp, Up, at=at, aw=aw, pphi=pphi, F1=F1, F2=F2, F3=F3, ...)
+	# cat(move$A, "\n")
     if(runif(1) < move$A) { # proposed iteration accepted
       tmp.recacc <- c(move$funh, move$nphi/dim)
       acc <- acc + move$nphi/dim

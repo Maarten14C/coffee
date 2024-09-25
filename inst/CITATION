@@ -15,8 +15,8 @@ blaauw2010 <- bibentry("Article",
   pages = " -- ",
   keywords = "Bayesian modeling, Calibration, Chronology, Stratigraphy, wiggle--match dating",
   year = "2024",
-  doi = "",
-  URL = "",
+  doi = "dx.doi.org/10.1017/RDC.2024.56",
+  URL = "http://dx.doi.org/10.1017/RDC.2024.56",
   textVersion = "Blaauw, M., Aquino, M., Christen, J.A., in press. Modelling chronologically ordered radiocarbon dates in R. Radiocarbon")
 
 christen2003 <- bibentry("Article",

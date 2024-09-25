@@ -306,6 +306,17 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   info$within.hpds <- within.hpds
   info$strat.dir <- file.path(strat.dir, name, name)
   
+#  plot.fit <- TRUE # doesn't look very nice
+#  if(plot.fit) {
+#    fits <- within.hpds/100
+#    median.ages <- apply(output, 2, median)
+#    colscale <- colorRamp(c("red", "green"))
+#    get_color <- function(value) 
+#      rgb(colscale(value)/255, maxColorValue = 1)
+#    fitcols <- get_color(fits) 
+#    points(median.ages, struc$pos.dates, pch=20, col=fitcols)
+# } 
+  
   # to ensure new information is available after running the strat function
   if(save.info)
     assign_to_global("info", info) 

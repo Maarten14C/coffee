@@ -209,7 +209,7 @@ strat("gaps_example") # will need a longer run for reliable results (the example
 
 For more help, type `?strat`.
 
-[^1]: Blaauw M, Aquino-Lopez MA, Christen JA, in press. Modelling chronologically ordered radiocarbon dates in R. *Radiocarbon*
+[^1]: Blaauw M, Aquino-Lopez MA, Christen JA, in press. Modelling chronologically ordered radiocarbon dates in R. *Radiocarbon* <http://dx.doi.org/10.1017/RDC.2024.56>
 
 [^2]: Christen JA, Litton CD, 1995. A Bayesian approach to wiggle-matching. *Journal of Archaeological Science* 22, 719-725
 

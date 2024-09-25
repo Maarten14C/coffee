@@ -1,9 +1,9 @@
 # coffee 0.4.1
-* further separation of the `rice` and `rintcal` packages within 'coffee'
-* added a function `strat.cleanup()` to remove previous runs
+* further separation of the 'rice' and 'rintcal' packages within 'coffee'
+* added a function 'strat.cleanup()' to remove previous runs
 
 # coffee 0.4.0
-* now linking to both the `rice` and `rintcal` packages
+* now linking to both the 'rice' and 'rintcal' packages
 * updated how gaps in strats are plotted
 
 # coffee 0.3.0

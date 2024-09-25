@@ -310,5 +310,5 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
       segments(best.age-dat[,4], dat[,2]-dat[,3], best.age-dat[,4], dat[,2]+dat[,3], col=date.col)
       polygon(agepol, col=dist.col, border=dist.col)
       segments(rng[1], min(C14.lim), rng[2], min(C14.lim), lwd=5, col=range.col)
-    }
+    }  
 }
