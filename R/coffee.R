@@ -1,9 +1,12 @@
 # todo:
-# check strat with calendar dates - do we need an upper boundary? 
+
+# make some cases to test before submitting any update to CRAN (e.g. with cc=0, postbomb, blocks, undated levels, ...)
+
+# make it possible to write in the cc column gap_gamma instead of 13, etc. g, n, e, u
 
 # plot: gaps are not plotted on the correct depth if there's a block above them
 
-# dates close to 0 14C BP (e.g. 260 +- 20) go wrong - too close to end cc? Add option youngest.age???
+# error if the bottom has a block. Can add a gap and an undated level below it and then take it away.... not nice. Adding just an undated level causes error in if (x[below.block[i]] < max(x[thisblock]))  
 
 # add a strat option for multiple cores which share events?
 
@@ -13,16 +16,17 @@
 
 # preparing the rings function to facilitate animations would also be helpful
 
-# ensure that functions such as pMC.age etc. are available immediately:
-library(rice)
+# ensure that functions such as pMCtoC14 etc. are available immediately:
+# not loading rice now because it's only needed for hpd, which has a bug for distributions from short iterations
+# library(rice)
 
 ### some internal functions to write and read things
 
 # function to load results in global environment - copied from rbacon package
 # parameter position defaults to 1, which equals an assignment to the global environment
-assign_to_global <- function(key, val, pos=1) {
+assign_to_global <- function(key, val, pos=1) 
   assign(key, val, envir=as.environment(pos) )
-}
+
 
 
 assign_dir <- function(umbrella, name, option.name, ask=FALSE, talk=TRUE) {

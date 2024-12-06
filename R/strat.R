@@ -43,9 +43,12 @@
 #' @param show.progress Whether or not to provide feedback on progress made with the run.
 #' @param clean.garbage Whether or not to clean up the memory 'garbage collection' after a run. Recommendable if you have many dates or long runs.
 #' @param save.info Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.
+#' @param roundby Number of decimals to round age (and any gap) estimates by, as reported in files in the site's folder. 
 #' @param age.span Expected age span. Defaults to run from the current year in AD to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, age.span is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.
+#' @param pdf Make a pdf copy of the plot and save it in the site's folder. Defaults to \code{pdf=TRUE}.
+#' @param png Make a png copy of the plot and save it in the site's folder. Defaults to \code{png=TRUE}.
 #' @param ... Options for the plot. See \code{draw.strat}.
-#' @return a variable 'info' which contains the dating and modelling information to produce a plot (see details). Also calls the function \code{draw.strat} to produce a plot of the results.
+#' @return a variable 'info' which contains the dating and modelling information to produce a plot (see details). Also calls the function \code{draw.strat} to produce a plot of the results, and saves file(s) with summaries of the age estimates and any gaps.
 #' @examples
 #' \dontrun{
 #' tmp <- tempdir()
@@ -62,9 +65,10 @@
 #'
 #' Nicholls G, Jones M 2001. Radiocarbon dating with temporal order constraints. Journal of the Royal Statistical Society: Series C (Applied Statistics) 50, 503-521.
 #' @export
-strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=100, thinning=c(), internal.thinning=c(), min.its=1e3, write.MCMC=FALSE, MCMC.dir=tempdir(), remove.tmp=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), prob=0.95, postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, show.progress=TRUE, clean.garbage=TRUE, save.info=TRUE, age.span=c(), ...) {
+strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=100, thinning=c(), internal.thinning=c(), min.its=1e3, write.MCMC=FALSE, MCMC.dir=tempdir(), remove.tmp=TRUE, init.ages=c(), ballpark.method=2, y.scale="dates", showrun=FALSE, sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, cc=1, cc.dir=c(), prob=0.95, postbomb=FALSE, BCAD=FALSE, ask=FALSE, talk=TRUE, show.progress=TRUE, clean.garbage=TRUE, save.info=TRUE, roundby=1, age.span=c(), pdf=TRUE, png=TRUE, ...) {
   start.time <- as.numeric(format(Sys.time(), "%s"))
   info <- read.strat(name, strat.dir, sep, normal, delta.R, delta.STD, t.a, t.b, cc)
+  info$basestratdir <- strat.dir
   dat <- info$dets
   struc <- structure(dat) # find the structure of the data frame. Will be saved into 'info' later on. 
   dets <- dat[which(struc$is.age),]
@@ -96,7 +100,7 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   cc.1 <- c(); cc.2 <- c(); cc.3 <- c(); cc.4 <-c()
   rc <- dets[which(dets[,5] %in% 1:4), 2] ### ok to not use dat?
   if(length(rc) > 0)
-    if(min(rc) < 100) { # has postbomb dates (or close to being postbomb), which are terrestrial only. Check how rintcal's calibrate covers this
+    if(min(rc) < 100) { # has postbomb dates (or close to being postbomb), which are terrestrial only. Check how rice's calibrate covers this
       if(1 %in% ccs) # NH
         cc.1 <- rintcal::glue.ccurves(1, postbomb, cc.dir)
       if(3 %in% ccs) # SH
@@ -211,18 +215,18 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     return(-1 * sum(l.x, x.cc0, x.cc1, x.cc2, x.cc3, x.cc4))
   }
 
-  # support function, ascertains ordering of all ages
-  support <- function(ages)
-    return(!min(diff(ages)) < 0)
+  now <- BCADtocalBP(as.numeric(format(Sys.time(), "%Y"))) # ages can't go into the future
 
   # if there are blocks, order the ages within them (even though they don't have to be)
   if(struc$has.blocks)
-    support <- function(ages) {
+    support <- function(ages, min_age=min_age) {
       inblock <- struc$within.block
       for(i in 1:length(inblock))
         ages[inblock[[i]]] <- sort(ages[inblock[[i]]])
       return(!min(diff(ages)) < 0)
-    }
+    } else 
+        support <- function(ages, min_age=min_age) 
+          return(!is.unsorted(ages, strictly = TRUE) && all(ages >= now))
 
   # write temporary output to files if required (these can become huge!)
   out.fl <- c(); energy.fl <- c()
@@ -282,6 +286,7 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     # save output and variables for future use
     write.table(output, file.path(strat.dir, name, paste0(name, ".out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
     write.table(Us, file.path(strat.dir, name, paste0(name, "_energy.out")), row.names=FALSE, quote=FALSE, col.names=FALSE)
+
   }
 
   info$dets <- dets
@@ -295,9 +300,20 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   # draw the dates and relative information
   # if(length(dat[,5] == 10) > 0) # sites with undated levels need to be plotted as positions
   #   y.scale <- "positions"
-  dates <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, min.its=min.its, ...)
+  dates <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, min.its=min.its, prob=prob, roundby=roundby, ...)
 
-#  info <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
+  if(pdf) {
+    pdf(file.path(strat.dir, name, paste0(name, ".pdf")))
+    draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, min.its=min.its, prob=prob, roundby=roundby, ...)
+    dev.off()
+  }
+  if(png) {
+    png(file.path(strat.dir, name, paste0(name, ".png")))
+    draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, min.its=min.its, prob=prob, roundby=roundby, ...)
+    dev.off()
+  }
+
+  #  info <- draw.strat(name, info, struc, BCAD=BCAD, strat.dir=strat.dir, y.scale=y.scale, cc.dir=cc.dir, postbomb=postbomb, ybottom.lab=y.scale, ...)
   info$dates <- dates
   if(length(struc$pos.gaps) > 0)
     for(i in rev(struc$pos.gaps))
@@ -306,22 +322,14 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
   info$within.hpds <- within.hpds
   info$strat.dir <- file.path(strat.dir, name, name)
   
-#  plot.fit <- TRUE # doesn't look very nice
-#  if(plot.fit) {
-#    fits <- within.hpds/100
-#    median.ages <- apply(output, 2, median)
-#    colscale <- colorRamp(c("red", "green"))
-#    get_color <- function(value) 
-#      rgb(colscale(value)/255, maxColorValue = 1)
-#    fitcols <- get_color(fits) 
-#    points(median.ages, struc$pos.dates, pch=20, col=fitcols)
-# } 
-  
+  # write summaries of the ages to file(s)
+  info$stats <- save.summaries(dets, dat, struc, output, prob, strat.dir, name, roundby=roundby)
+
   # to ensure new information is available after running the strat function
   if(save.info)
     assign_to_global("info", info) 
 
-  if(talk) { 
+  if(talk) {
     o <- order(within.hpds)
     pos.dates <- struc$pos.dates[o]
     message(round(mean(within.hpds),2),
@@ -411,7 +419,6 @@ ages.undated <- function(position, set=get('info'), draw=TRUE) {
 # for all model age estimates, check if they fall within one of the hpd ranges of the dates
 #' @name withinhpd
 #' @title Calculate the fit of a modelled age with the corresponding date
-
 #' @description This is a measure of the fit of the modelled age to that of the date. If many of the modelled age iterations fall within any of the highest posterior density (hpd) range of a date, the model fits the date well. The values can range from 0% (no fit, no modelled ages fall within any of the date's hpd ranges) to 100% (excellent fit).
 #' @param calibs The calibrated ages of the distributions (dates)
 #' @param probs The probabilities associated with the calibrated ages (dates)
@@ -423,13 +430,13 @@ withinhpd <- function(calibs, probs, modelled, prob=.95) {
   fits <- c()
   # for each modelled age, find the height on the date's distribution (peak=1)
   for(i in 1:ncol(calibs)) {
-    this.hpd <- rbind(hpd(cbind(calibs[,i], probs[,i]), prob))
+    this.hpd <- rbind(temp.hpd(cbind(calibs[,i], probs[,i]), prob)) # not the one from rice
     inside <- rep(0, nrow(modelled))
     for(j in 1:nrow(this.hpd)) { # check which model ages fit within any of the hpd ranges
-	  rng <- range(this.hpd[j,1:2])
+      rng <- range(this.hpd[j,1:2])
       inside <- inside + ((modelled[,i] > rng[1]) * (modelled[,i] < rng[2]))
-	}  
-	fits[i] <- length(which(inside > 0)) / nrow(modelled) # ratio
+    }
+    fits[i] <- length(which(inside > 0)) / nrow(modelled) # ratio
   }
   return(100*fits) # as percentage
 }
@@ -447,4 +454,56 @@ overlap <- function(calibs, probs, modelled, n=1e3) {
     same[i] <- 1-abs(smaller-larger)/n
   }
   return(100*same) # as percentage
+}
+
+
+
+# internal function to calculate 95% ranges, mean/median, and modes for age estimates and gaps if present. Results are written to file(s)
+save.summaries <- function(dets=set$dets, dat=set$dat, struc=set$struc, output=set$output, prob=0.95, strat.dir=set$basestratdir, name=set$name, set=get('info'), roundby=1) {
+  # report modelled ages
+  min95 <- c()
+  max95 <- c()
+  medians <- c()
+  means <- c()
+  modes <- c()
+  for(i in 1:nrow(dets)) {
+    out <- output[,i]
+    out <- out[!is.na(out)]
+    qu <- quantile(out, c((1-prob)/2, 1-(1-prob/2), 0.5))
+    min95[i] <- qu[1]
+    max95[i] <- qu[2]
+    medians[i] <- qu[3]
+    means[i] <- mean(out)
+    dns <- density(out)
+    modes[i] <- dns$x[which(dns$y==max(dns$y))[1]]
+  }
+  ID <- dets[,1]
+  stats <- cbind(ID, round(cbind(min95, max95, medians, means, modes), roundby)) # needs an option roundby
+  write.table(stats, file.path(strat.dir, name, paste0(name, "_ages.txt")), sep="\t", row.names=FALSE, quote=FALSE)
+
+  # report the stats of any gaps
+  if(struc$has.gaps) {
+    min95 <- c()
+    max95 <- c()
+    medians <- c()
+    means <- c()
+    modes <- c()
+    for(i in 1:length(struc$pos.gaps)) {
+      above <- which(struc$pos.ages == struc$pos.gaps[i] - 1)
+      below <- which(struc$pos.ages == struc$pos.gaps[i] + 1)
+      out <- output[,below] - output[,above]
+      out <- out[!is.na(out)]
+      qu <- quantile(out, c((1-prob)/2, 1-((1-prob)/2), 0.5))
+      min95[i] <- qu[1]
+      max95[i] <- qu[2]
+      medians[i] <- qu[3]
+      means[i] <- mean(out)
+      dns <- density(out)
+      modes[i] <- dns$x[which(dns$y==max(dns$y))[1]]
+    }
+    ID <- dat[which(struc$is.gap),1]
+    gapstats <- cbind(ID, round(cbind(min95, max95, medians, means, modes), 1)) # needs an option roundby
+    write.table(gapstats, file.path(strat.dir, name, paste0(name, "_gaps.txt")), sep="\t", row.names=FALSE, quote=FALSE)
+  }
+  invisible(stats)
 }

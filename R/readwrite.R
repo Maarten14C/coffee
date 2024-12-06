@@ -80,6 +80,13 @@ structure <- function(dat) {
   pos.blocks <- c()
   if(length(is.block) > 0)
     pos.blocks <- which(is.block)
+  
+  # the bottom of a strat cannot itself be a block (for now...)
+  # can we add an undated level below a block?
+  if(dat[nrow(dat),4] == dat[nrow(dat)-1,4])
+    stop("coffee cannot deal with a block at the bottom of a strat.
+      As a workaround, please add these lines to the bottom of the .csv file: 
+	  \nignore_fakegap, 0, 10, ", dat[nrow(dat),4]+1, ", 13\nignore_undated, , 5, 10")
 
   # now deal with any gaps
   is.gap <- dat[,5] > 10
@@ -282,7 +289,6 @@ ballpark.strat <- function(method=1, dat, gaps, postbomb=postbomb, normal=normal
 #' @param write Whether or not to write the changes to the output file. Defaults to TRUE.
 #' @param save.info Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.
 #' @return NA
-#'
 #' @export
 scissors <- function(burnin, set=get('info'), write=TRUE, save.info=TRUE) {
   output <- fastread(paste0(set$strat.dir, ".out"))
@@ -315,6 +321,7 @@ scissors <- function(burnin, set=get('info'), write=TRUE, save.info=TRUE) {
   set$Ups <- energy
   if(save.info)
     assign_to_global("info", set)
+  
   invisible(set)
 }
 

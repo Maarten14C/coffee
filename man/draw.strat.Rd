@@ -12,11 +12,13 @@ draw.strat(
   strat.dir = "strats",
   cc.dir = c(),
   sep = ",",
-  postbomb = FALSE,
-  calibrated.ex = c(),
+  postbomb = 1,
+  prob = 0.95,
+  roundby = 1,
+  calibrated.ex = 0.5,
   calibrated.mirror = FALSE,
   calibrated.up = TRUE,
-  modelled.ex = c(),
+  modelled.ex = 0.9,
   modelled.mirror = FALSE,
   modelled.up = FALSE,
   BCAD = FALSE,
@@ -46,7 +48,11 @@ draw.strat(
   iterations.warning = TRUE,
   min.its = 1000,
   warning.loc = "bottomleft",
-  warning.col = "red"
+  warning.col = "red",
+  labels = FALSE,
+  label.loc = c(),
+  label.size = 0.5,
+  label.col = "black"
 )
 }
 \arguments{
@@ -66,13 +72,17 @@ draw.strat(
 
 \item{postbomb}{Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).}
 
-\item{calibrated.ex}{Exaggeration of the heights of the calibrated distributions. Calculated automatically by default. Note that more precise dates peak higher than dates with lower precision.}
+\item{prob}{Probability Probability ranges for the age estimates (and any gap length estimates) which will be saved in files in the site's folder. Defaults to 95\% (\code{prob=0.95}).}
+
+\item{roundby}{Rounding in numbers of decimals for reported age estimates (which will be saved in files in the site's folder). Defaults to \code{roundby=1}.}
+
+\item{calibrated.ex}{Exaggeration of the heights of the calibrated distributions. Set at \code{calibrated.ex=0.5} by default, designed to approach but not overlap with neighbouring dates. Note that more precise dates peak higher than dates with lower precision.}
 
 \item{calibrated.mirror}{Whether or not the individually calibrated (but not the modelled) distributions should be drawn both up and down, quite a bit like fish or swans. Defaults to FALSE.}
 
 \item{calibrated.up}{Whether the calibrated distributions should be drawn upward or downward (the default, resembling the reflections of islands in the sea, or swimming animals if you wish)}
 
-\item{modelled.ex}{Exaggeration of the heights of the age-modelled distributions. Calculated automatically by default. Note that more precise ages peak higher than ages with lower precision.}
+\item{modelled.ex}{Exaggeration of the heights of the age-modelled distributions. Set at \code{modelled.ex=0.9} by default, designed to approach but not overlap with neighbouring dates. Note that more precise ages peak higher than ages with lower precision.}
 
 \item{modelled.mirror}{Whether or not the age-modelled distributions should be drawn both up and down, quite a bit like fish or swans. Defaults to FALSE.}
 
@@ -133,6 +143,14 @@ draw.strat(
 \item{warning.loc}{Location of the warning}
 
 \item{warning.col}{Colour of the warning - defaults to red.}
+
+\item{labels}{Whether or not to draw any labels of the dates.}
+
+\item{label.loc}{Location of the labels. Defaults to the lefthand side of the graph.}
+
+\item{label.size}{Size of the font of the labels. Defaults to \code{label.size=0.5}.}
+
+\item{label.col}{Colour(s) of the labels, e.g., \code{label.col=1:10}.}
 }
 \value{
 A plot with two panels showing the MCMC run and the calibrated and modelled ages.

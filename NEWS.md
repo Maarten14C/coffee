@@ -1,3 +1,10 @@
+# coffee 0.4.2
+* draw.strat now plots gaps better when using BCAD
+* labels can be plotted in draw.strat (not done by default)
+* strat runs now write a file ending in _ages.txt, containing the age estimates (95% ranges, means, medians, modes) into the site's folder, and if gaps were modelled, another file ending in _gaps.txt with the same estimates for the gap sizes.
+* new function MCMCrings to calculate both age estimates and age offsets for a C14-dated tree.
+* corrected a bug in the Vignette.
+
 # coffee 0.4.1
 * further separation of the 'rice' and 'rintcal' packages within 'coffee'
 * added a function 'strat.cleanup()' to remove previous runs

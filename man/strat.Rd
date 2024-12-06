@@ -36,7 +36,10 @@ strat(
   show.progress = TRUE,
   clean.garbage = TRUE,
   save.info = TRUE,
+  roundby = 1,
   age.span = c(),
+  pdf = TRUE,
+  png = TRUE,
   ...
 )
 }
@@ -103,12 +106,18 @@ strat(
 
 \item{save.info}{Whether or not to store a variable `info' in the session which contains the run input, output and settings. Defaults to \code{save.info=TRUE}.}
 
+\item{roundby}{Number of decimals to round age (and any gap) estimates by, as reported in files in the site's folder.}
+
 \item{age.span}{Expected age span. Defaults to run from the current year in AD to 55e3 which is the current cal BP limit for C-14 dates. If older, non-14C dates are present, age.span is set to the larger of the radiocarbon limit or twice the age of the oldest non-radiocarbon age.}
+
+\item{pdf}{Make a pdf copy of the plot and save it in the site's folder. Defaults to \code{pdf=TRUE}.}
+
+\item{png}{Make a png copy of the plot and save it in the site's folder. Defaults to \code{png=TRUE}.}
 
 \item{...}{Options for the plot. See \code{draw.strat}.}
 }
 \value{
-a variable 'info' which contains the dating and modelling information to produce a plot (see details). Also calls the function \code{draw.strat} to produce a plot of the results.
+a variable 'info' which contains the dating and modelling information to produce a plot (see details). Also calls the function \code{draw.strat} to produce a plot of the results, and saves file(s) with summaries of the age estimates and any gaps.
 }
 \description{
 Model radiocarbon dates (or dates that are already on the cal BP scale) of a deposit that is known to have accumulated over time, and for which therefore the dated positions can be safely assumed to are in chronological order.

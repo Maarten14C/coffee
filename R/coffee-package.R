@@ -19,7 +19,7 @@
 #' @importFrom utils read.csv read.table write.table packageName txtProgressBar setTxtProgressBar
 #' @importFrom data.table fread fwrite
 #' @importFrom rintcal ccurve glue.ccurves
-#' @import rice
+#' @importFrom rice caldist BCADtocalBP draw.dates draw.ccurve
 #' @name coffee
 #' @keywords internal
 "_PACKAGE"
