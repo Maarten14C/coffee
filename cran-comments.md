@@ -1,7 +1,7 @@
 ## Test environments
-* local Fedora Linux 40 install, R 4.4.1
+* local OSX, R 4.4.2
 * win-builder (devel and release)
-* rhub
+* rhub linux, OXS, Windows
 
 ## R CMD check results
 There were no ERRORs, NOTEs or WARNINGs.
