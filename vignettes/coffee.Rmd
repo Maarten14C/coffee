@@ -189,8 +189,10 @@ set.seed(123)
 sim.strat(n=5)
 strat(its=1000, burnin=0, thinning=1, internal.thinning=1, show.progress=FALSE) # much too short
 layout(1) # new plot
-undated_1.5 <- ages.undated(1.5) # ages between positions 1 and 2
-summary(undated_1.5)
+if(length(info$output) > 0) { # to avoid runs that produced no remaining iterations
+  undated_1.5 <- ages.undated(1.5) # ages between positions 1 and 2
+  summary(undated_1.5)
+}
 ```
   
 #### 2.1.3 gaps  

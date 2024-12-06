@@ -1,3 +1,6 @@
+# coffee 0.4.3
+* further corrections regarding a bug in the Vignette.
+
 # coffee 0.4.2
 * draw.strat now plots gaps better when using BCAD
 * labels can be plotted in draw.strat (not done by default)
