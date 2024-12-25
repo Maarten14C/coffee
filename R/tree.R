@@ -125,7 +125,7 @@ rings <- function(name="Ulandryk", tree.dir="trees", sep=",", normal=FALSE, delt
   fits <- c()
   for(i in 1:nrow(dat)) {
     calib <- rice::caldist(dat[i,2], dat[i,3], dat[i,5])
-    this.hpd <- rbind(temp.hpd(calib, prob)) # not the one from rice
+    this.hpd <- rbind(rice::hpd(calib, prob)) # not the one from rice
     inside <- rep(0, nrow(out))
     for(j in 1:nrow(this.hpd)) { 
       rng <- range(this.hpd[j,1:2])
@@ -264,8 +264,8 @@ MCMCrings <- function(name="Ulandryk", tree.dir="trees", delta.R=0, delta.STD=10
   if(draw)
     draw.MCMCrings(yrs=yrs, dR=dR, dat=dat, cc=cc, Us=Us, delta.R=delta.R, delta.STD=delta.STD, BCAD=BCAD, name=name, ...)
   	
-  x.hpds <- temp.hpd(cbind(yrs$x, yrs$y), prob=prob) # not the one from rice
-  dR.hpds <- temp.hpd(cbind(dR$x, dR$y), prob=prob) # not the one from rice
+  x.hpds <- rice::hpd(cbind(yrs$x, yrs$y), prob=prob) # there was a bug in rice
+  dR.hpds <- rice::hpd(cbind(dR$x, dR$y), prob=prob) # there was a bug in rice
   if(talk) {
     message("Age estimate: ", round(x.hpds[1], roundby), " - ", round(x.hpds[2],roundby), 
       ifelse(BCAD, " BC/AD (", " cal BP ("), round(x.hpds[3], roundby), "%)")

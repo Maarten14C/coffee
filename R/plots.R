@@ -52,7 +52,7 @@
 #' @return A plot with two panels showing the MCMC run and the calibrated and modelled ages.
 #' @author Maarten Blaauw
 #' @export
-draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.scale="positions", strat.dir="strats", cc.dir=c(), sep=",", postbomb=1, prob=0.95, roundby=1, calibrated.ex=0.5, calibrated.mirror=FALSE, calibrated.up=TRUE, modelled.ex=0.9, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, calBP.col=rgb(0, 0, 0, 0.2), calBP.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", block.col=rgb(0,0,1,.05), gap.col="blue", gap.pos=1, simulation=FALSE, simulation.col=grey(0.5), pos.lim=c(), age.lim=c(), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, min.its=1e3, warning.loc="bottomleft", warning.col="red", labels=FALSE, label.loc=c(), label.size=0.5, label.col="black") {
+draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.scale="positions", strat.dir="strats", cc.dir=c(), sep=",", postbomb=1, prob=0.95, roundby=1, calibrated.ex=0.5, calibrated.mirror=FALSE, calibrated.up=FALSE, modelled.ex=0.7, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, calBP.col=rgb(0, 0, 0, 0.2), calBP.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", block.col=rgb(0,0,1,.05), gap.col="blue", gap.pos=1, simulation=FALSE, simulation.col=grey(0.5), pos.lim=c(), age.lim=c(), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, min.its=1e3, warning.loc="bottomleft", warning.col="red", labels=FALSE, label.loc=c(), label.size=0.5, label.col="black") {
   layout(matrix(1:2, ncol=1), heights=heights)
   oldpar <- par(no.readonly = TRUE)
   #on.exit(par(oldpar))
@@ -92,7 +92,7 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   if(y.scale[1] == "dates")
     y.scale <- 1:length(dates)
   if(length(pos.lim) == 0)
-    pos.lim <- extendrange(y.scale, f=0.1)
+    pos.lim <- extendrange(y.scale, f=0.2)
 
   mod.ex <- NA
   all.y <- sort(c(pos.lim, y.scale)) # also include y limits
@@ -126,8 +126,8 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   for(i in 1:ncol(ages)) {
     age <- density(ages[,i])
     #age$y <- age$y / maxdens * max(diff(y.scale)) # last term new Nov 2024
-#    hpds[[i]] <- rice::hpd(cbind(age$x, age$y)) # bug in rice's hpd'
-    hpds[[i]] <- temp.hpd(cbind(age$x, age$y))
+    hpds[[i]] <- rice::hpd(cbind(age$x, age$y)) # 
+#    hpds[[i]] <- temp.hpd(cbind(age$x, age$y))
     if(modelled.mirror)
       pol <- cbind(c(age$x, rev(age$x)), ages.positions[i]-modelled.ex*c(age$y, -rev(age$y))) else
         if(modelled.up)

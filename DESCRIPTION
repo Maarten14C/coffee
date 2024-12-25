@@ -16,4 +16,4 @@ NeedsCompilation: no
 Language: en-GB
 VignetteBuilder: knitr
 Suggests: knitr, rmarkdown, utf8
-Imports: data.table, rintcal (>= 1.1.0), rice (>= 0.4.0)
+Imports: data.table, rintcal (>= 1.1.1), rice (>= 0.5.0)

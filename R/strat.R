@@ -430,7 +430,7 @@ withinhpd <- function(calibs, probs, modelled, prob=.95) {
   fits <- c()
   # for each modelled age, find the height on the date's distribution (peak=1)
   for(i in 1:ncol(calibs)) {
-    this.hpd <- rbind(temp.hpd(cbind(calibs[,i], probs[,i]), prob)) # not the one from rice
+    this.hpd <- rbind(rice::hpd(cbind(calibs[,i], probs[,i]), prob)) # rice's had a bug
     inside <- rep(0, nrow(modelled))
     for(j in 1:nrow(this.hpd)) { # check which model ages fit within any of the hpd ranges
       rng <- range(this.hpd[j,1:2])
