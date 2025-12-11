@@ -27,6 +27,7 @@ MCMCrings(
   postbomb = FALSE,
   BCAD = FALSE,
   talk = TRUE,
+  show.progress = TRUE,
   draw = TRUE,
   ...
 )
@@ -75,6 +76,8 @@ MCMCrings(
 \item{BCAD}{The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.}
 
 \item{talk}{Whether or not to provide feedback.}
+
+\item{show.progress}{Whether or not to inform the user about progress of the MCMC run.}
 
 \item{draw}{Whether or not to draw the graphs.}
 

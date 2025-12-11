@@ -1,3 +1,7 @@
+# coffee 0.5.0
+* links to updated rice and rintcal packages
+* strat now calculates the 95% ranges correctly (the upper range had a bug making it calculate the 47.5% quantile instead of 95%)
+
 # coffee 0.4.3
 * further corrections regarding a bug in the Vignette.
 

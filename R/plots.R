@@ -52,7 +52,7 @@
 #' @return A plot with two panels showing the MCMC run and the calibrated and modelled ages.
 #' @author Maarten Blaauw
 #' @export
-draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.scale="positions", strat.dir="strats", cc.dir=c(), sep=",", postbomb=1, prob=0.95, roundby=1, calibrated.ex=0.5, calibrated.mirror=FALSE, calibrated.up=FALSE, modelled.ex=0.7, modelled.mirror=FALSE, modelled.up=FALSE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, calBP.col=rgb(0, 0, 0, 0.2), calBP.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", block.col=rgb(0,0,1,.05), gap.col="blue", gap.pos=1, simulation=FALSE, simulation.col=grey(0.5), pos.lim=c(), age.lim=c(), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, min.its=1e3, warning.loc="bottomleft", warning.col="red", labels=FALSE, label.loc=c(), label.size=0.5, label.col="black") {
+draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.scale="positions", strat.dir="strats", cc.dir=c(), sep=",", postbomb=1, prob=0.95, roundby=1, calibrated.ex=0.7, calibrated.mirror=FALSE, calibrated.up=FALSE, modelled.ex=0.7, modelled.mirror=FALSE, modelled.up=TRUE, BCAD=FALSE, threshold=0.001, xtop.lab=c(), ytop.lab=c(), xbottom.lab=c(), ybottom.lab="position", calibrated.col=rgb(0, 0, 0, 0.2), calibrated.border=NA, calBP.col=rgb(0, 0, 0, 0.2), calBP.border=NA, modelled.col=rgb(0,0,0,0.5), modelled.border=rgb(0,0,0,0.5), range.col="black", block.col=rgb(0,0,1,.05), gap.col="blue", gap.pos=1, simulation=FALSE, simulation.col=grey(0.5), pos.lim=c(), age.lim=c(), mgp=c(2, 0.7, 0), mar.top=c(3,3,1,1), mar.bottom=c(3,3,0.5,1), heights=c(0.3, 0.7), iterations.warning=TRUE, min.its=1e3, warning.loc="bottomleft", warning.col="red", labels=FALSE, label.loc=c(), label.size=0.5, label.col="black") {
   layout(matrix(1:2, ncol=1), heights=heights)
   oldpar <- par(no.readonly = TRUE)
   #on.exit(par(oldpar))
@@ -94,7 +94,7 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   if(length(pos.lim) == 0)
     pos.lim <- extendrange(y.scale, f=0.2)
 
-  mod.ex <- NA
+  mod.ex <- NA # find the highest peaking modelled distribution
   all.y <- sort(c(pos.lim, y.scale)) # also include y limits
   for(i in 1:length(dates)) {
     mx <- max(density(ages[,i])$y)
@@ -103,7 +103,7 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   modelled.ex <- modelled.ex * min(mod.ex, na.rm=TRUE)
 
   par(mar=mar.bottom)
-  Dates <- draw.dates(dets[dates,2], dets[dates,3], y.scale, dets[dates,5], cc.dir=cc.dir, postbomb=postbomb, ex=calibrated.ex, mirror=calibrated.mirror, up=calibrated.up, col=calibrated.col, border=calibrated.border, cal.col=calBP.col, cal.border=calBP.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=TRUE, cal.lab=xbottom.lab, d.lab=ybottom.lab, age.lim=age.lim, d.lim=pos.lim)
+  Dates <- rice::draw.dates(dets[dates,2], dets[dates,3], y.scale, dets[dates,5], cc.dir=cc.dir, postbomb=postbomb, ex=calibrated.ex, mirror=calibrated.mirror, up=calibrated.up, col=calibrated.col, border=calibrated.border, cal.col=calBP.col, cal.border=calBP.border, BCAD=BCAD, draw.hpd=FALSE, threshold=threshold, normalise=TRUE, cal.lab=xbottom.lab, d.lab=ybottom.lab, age.lim=age.lim, d.lim=pos.lim)
 
   if(set$struc$has.blocks) {
     above <- set$struc$above.block
@@ -126,13 +126,12 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
   for(i in 1:ncol(ages)) {
     age <- density(ages[,i])
     #age$y <- age$y / maxdens * max(diff(y.scale)) # last term new Nov 2024
-    hpds[[i]] <- rice::hpd(cbind(age$x, age$y)) # 
-#    hpds[[i]] <- temp.hpd(cbind(age$x, age$y))
+    hpds[[i]] <- rice::hpd(cbind(age$x, age$y))
     if(modelled.mirror)
       pol <- cbind(c(age$x, rev(age$x)), ages.positions[i]-modelled.ex*c(age$y, -rev(age$y))) else
         if(modelled.up)
-          pol <- cbind(c(min(age$x), age$x, max(age$x)), ages.positions[i]+modelled.ex*c(0, age$y, 0)) else
-            pol <- cbind(c(min(age$x), age$x, max(age$x)), ages.positions[i]-modelled.ex*c(0, age$y, 0))
+          pol <- cbind(c(min(age$x), age$x, max(age$x)), ages.positions[i]-modelled.ex*c(0, age$y, 0)) else
+            pol <- cbind(c(min(age$x), age$x, max(age$x)), ages.positions[i]+modelled.ex*c(0, age$y, 0))
     polygon(pol, col=modelled.col, border=modelled.border)
     if(simulation)
       segments(ifelse(BCAD, 1950-dets[i,1], dets[i,1]), i, ifelse(BCAD, 1950-dets[i,1], dets[i,1]), ncol(ages)+10, lty=2, col=simulation.col) # then don't be afraid to show the truth!
@@ -195,51 +194,11 @@ draw.strat <- function(name="mystrat", set=get('info'), structure=set$struc, y.s
 
 
 
-# there's a bug in rice's hpd that causes an error in case of very small ranges
-# so, using a temporary internal hpd function
-temp.hpd <- function(calib, prob=0.95, return.raw=FALSE, rounded=1, every=1) {
-  # re-interpolate to desired precision
-  rng <- max(calib[,1])-min(calib[,1])
-  if(rng >= 20*every) # sufficient cal BP space covered to calculate hpds
-    calib <- approx(calib[,1], calib[,2], seq(min(calib[,1]), max(calib[,1]), by=every), rule=2) else
-      calib <- approx(calib[,1], calib[,2], seq(min(calib[,1]), max(calib[,1]), length=100), rule=2)
-  calib <- cbind(calib$x, calib$y)
-
-  # rank the calibrated ages according to their probabilities (normalised to be sure)
-  calib[,2] <- calib[,2] / sum(calib[,2]) # does not necessarily sum to 1
-  o <- order(calib[,2], decreasing=TRUE)
-  summed <- cbind(calib[o,1], cumsum(calib[o,2])/sum(calib[,2]))
-
-  # find the ages that fall within the hpd range
-  summed <- cbind(summed[,1], summed[,2] <= prob)
-  BCAD <- ifelse(min(diff(calib[,1])) < 0, TRUE, FALSE) # christ...
-  o <- order(summed[,1], decreasing=BCAD) # put ages ascending again
-  calib <- cbind(calib, summed[o,2]) # add a column indicating ages within ranges
-
-  # find the outer ages of the calibrated ranges. The 0 should help with truncated ages
-  to <- calib[which( diff(c(0, calib[,3])) == 1), 1]
-  from <- calib[which( diff(c(calib[,3], 0)) == -1), 1]
-  to <- sort(to, ifelse(BCAD, FALSE, TRUE)) # sort from oldest to youngest
-  from <- sort(from, ifelse(BCAD, FALSE, TRUE))
-
-  # find the probability 'area' within each range (as %)
-  perc <- 0
-  for(i in 1:length(from)) {
-    fromto <- which(calib[,1] == from[i]) : which(calib[,1] == to[i])
-    perc[i] <- round(100*sum(calib[fromto,2]), rounded)
-  }
-
-  if(return.raw)
-    return(list(calib, cbind(from, to, perc))) else
-      return(cbind(from, to, perc))
-}
-
-
-
 #' @name draw.rings
 #' @title plot the dates and model of a wiggle-match dated tree
 #' @description A plot with two panels. The top panel shows the calibrated distributions (in blue) and the wiggle-match age-modelled age estimates for each dated ring (grey). The bottom panel shows the fit of the uncalibrated radiocarbon dates (steelblue dots and lab error bars) to the calibration curve (green), as well as the age estimate of the oldest/starting ring (grey) and its hpd range (black).
 #' @param name The name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{tree.dir} folder. Default names include Ulandryk4 and mytree.
+#' @param theta0 By default, the age of the oldest, innermost ring is calculated (\code(theta="youngest")). Alternatively, this can be set to \code{theta0="oldest"}.
 #' @param tree.dir The directory where the folders of the individual trees live. Defaults to \code{treedir="trees"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param normal Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009).
@@ -280,7 +239,7 @@ temp.hpd <- function(calib, prob=0.95, return.raw=FALSE, rounded=1, every=1) {
 #'   draw.rings("Ulandryk", tree.dir=treedir)
 #' @author Maarten Blaauw, J. Andres Christen
 #' @export
-draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, dat=c(), out=c(), cc=1, postbomb=FALSE, BCAD=FALSE, t.a=3, t.b=4, x.lim=c(), x1.axis=TRUE, x1.labels=FALSE, x1.lab=c(), rev.x=FALSE, y1.lab=c(), y1.lim=c(), y2.lim=c(), x2.lab=c(), y2.lab=c(), ex=0.05, plot.cc=TRUE, plot.dists=TRUE, mar.1=c(1,3,1,1), mar.2=c(3,3,0,1), mgp=c(1.7, .7, 0), dist.res=500, date.col="steelblue", cc.col=rgb(0, 0.5, 0, 0.5), dist.col=rgb(0,0,0,0.5), calib.col=rgb(0,0,1,0.25), range.col="black", set.layout=TRUE) {
+draw.rings <- function(name="mytree", theta0="youngest", tree.dir="trees", sep=",", th0="last", normal=TRUE, dat=c(), out=c(), cc=1, postbomb=FALSE, BCAD=FALSE, t.a=3, t.b=4, x.lim=c(), x1.axis=TRUE, x1.labels=FALSE, x1.lab=c(), rev.x=FALSE, y1.lab=c(), y1.lim=c(), y2.lim=c(), x2.lab=c(), y2.lab=c(), ex=0.05, plot.cc=TRUE, plot.dists=TRUE, mar.1=c(1,3,1,1), mar.2=c(3,3,0,1), mgp=c(1.7, .7, 0), dist.res=500, date.col="steelblue", cc.col=rgb(0, 0.5, 0, 0.5), dist.col=rgb(0,0,0,0.5), calib.col=rgb(0,0,1,0.25), range.col="black", set.layout=TRUE) {
 
   # usually draw.rings is called from within the function rings. But runs could also be reloaded, and that would happen if dat or out are not provided. Then this is read from the file.
   if(length(dat) == 0)
@@ -293,14 +252,22 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
   if(length(y2.lim) > 0)
     C14.lim <- y2.lim else
       C14.lim <- extendrange(c(dat[,2]-dat[,3], dat[,2]+dat[,3]))
+  ring.range <- (max(dat[,4])-min(dat[,4]))
+
+  direction <- -1
+  if(theta0 == "oldest")
+    direction <- 1
+
   if(length(x.lim) == 0)
-    cal.lim <- range(out[,1], out[,1] - (max(dat[,4])-min(dat[,4]))) else
-      ifelse(BCAD, cal.lim <- 1950 - x.lim, cal.lim <- x.lim)
+    cal.lim <- range(out[,1], out[,1] + direction * ring.range) else # the "+" should be more interactive, as some trees require "-"
+      #ifelse(BCAD, cal.lim <- 1950 - x.lim, cal.lim <- x.lim)
+      cal.lim <- x.lim
 
   age.min <- min(out[,1])
   age.max <- age.min + (max(dat[,4]) - min(dat[,4])) # how many rings
   age.lim <- extendrange(c(age.min, age.max), f=.1) # add 10% to each end
-  best.age <- out[which(out[,2] == max(out[,2])),1]
+  best.age <- out[which(out[,2] == max(out[,2])),1][1]
+  
   exg <- 100*ex
   ex <- ex * (max(C14.lim)-min(C14.lim)) / max(out[,2])
   agepol <- cbind(c(min(out[,1]), out[,1], max(out[,1])),
@@ -310,7 +277,7 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
   rng <- cbind(out[o,1], cumsum(out[o,2]))
   rng <- range(rng[which(rng[,2] <= .95),1])
   if(BCAD)
-    message("best age: ", 1950-best.age, " BC/AD, 95% range: ", 1950-rng[2], " to ", 1950-rng[1], " BC/AD, ", rng[2]-rng[1], " yr") else
+    message("best age: ", 1950-best.age, " cal BC/AD, 95% range: ", 1950-rng[2], " to ", 1950-rng[1], " cal BC/AD, ", rng[2]-rng[1], " yr") else
       message("best age: ", best.age, " cal BP, 95% range: ", rng[2], " to ", rng[1], " cal BP, ", rng[2]-rng[1], " yr")
 
   ccpol <- cc#[cc.min:cc.max,]
@@ -322,8 +289,8 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
       if(plot.cc || plot.dists)
         layout(1)
 
-  oldpar <- par(no.readonly=TRUE)
-  on.exit(par(oldpar))
+  #oldpar <- par(no.readonly=TRUE)
+  #on.exit(par(oldpar))
   par(mar=mar.1, mgp=mgp)
     xaxt <- ifelse(BCAD, "n", "s")
     if(length(x1.lab) == 0)
@@ -334,7 +301,7 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
       y1.lim <- rev(extendrange(dat[,4], f=c(0, .1)))
       #instead, find the last date and the height of the probdist
     if(length(x2.lab) == 0)
-      x2.lab <- ifelse(BCAD, "BC/AD", "cal BP")
+      x2.lab <- ifelse(BCAD, "cal BC/AD", "cal BP")
     if(length(y2.lab) == 0)
       y2.lab <- expression(""^14*C~BP)
     if(rev.x)
@@ -356,7 +323,7 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
         calib.pol <- cbind(c(min(calib[,1]), calib[,1], max(calib[,1])),
           dat[i,4]-c(0, exg*calib[,2], 0))
         polygon(calib.pol, col=calib.col, border=calib.col)
-		postpol <- cbind(out[,1] - dat[i,4], dat[i,4]-exg*out[,2]/max(out[,2]))
+        postpol <- cbind(out[,1] - dat[i,4], dat[i,4]-exg*out[,2]/max(out[,2]))
         polygon(postpol, col=dist.col, border=dist.col)
       }
     }
@@ -365,13 +332,15 @@ draw.rings <- function(name="mytree", tree.dir="trees", sep=",", normal=TRUE, da
       if(plot.dists) # then plotting both
         par(mar=mar.2)
       plot(best.age-dat[,4], dat[,2], pch=20, col=date.col, xlab=x2.lab, ylab=y2.lab, xlim=cal.lim, ylim=C14.lim, bty="l", yaxs="i", xaxt=xaxt)
+      usr <<- par("usr")
       if(BCAD)
         axis(1, pretty(cal.lim), 1950 - pretty(cal.lim))
       polygon(ccpol, col=cc.col, border=cc.col) # calibration curve
       segments(best.age-dat[,4], dat[,2]-dat[,3], best.age-dat[,4], dat[,2]+dat[,3], col=date.col)
       polygon(agepol, col=dist.col, border=dist.col)
       segments(rng[1], min(C14.lim), rng[2], min(C14.lim), lwd=5, col=range.col)
-    }  
+    }
+  invisible(list(best.age = best.age, usr= par("usr")))
 }
 
 
@@ -419,7 +388,7 @@ draw.MCMCrings <- function(yrs, dR, dat, cc, Us, delta.R, delta.STD, BCAD, cal.l
   plot(xseq, dnorm(xseq, delta.R, delta.STD), type="l", col=prior.col, lwd=2, main="", xlab=prior.lab, ylab="",
     xlim=range(dR$x, delta.R-3*delta.STD, delta.R+3*delta.STD), 
     ylim=c(0, max(dnorm(delta.R, delta.R, delta.STD), dR$y)), 
-  	yaxs="i", cex.axis=0.8, cex.lab=0.8)
+    yaxs="i", cex.axis=0.8, cex.lab=0.8)
   polygon(dR.pol, col=post.col)	
   legend("topright", legend=paste(delta.R, "+-", delta.STD), text.col=text.col, cex=.7, bty="n") 
 
@@ -427,25 +396,25 @@ draw.MCMCrings <- function(yrs, dR, dat, cc, Us, delta.R, delta.STD, BCAD, cal.l
   if(length(cal.lim) == 0)
     cal.lim <- range(yrs$x, yrs$x-max(dat[,4]))
   if(length(cal.lab) == 0)
-	cal.lab <- ifelse(BCAD, "BC/AD", "cal BP")
+    cal.lab <- ifelse(BCAD, "BC/AD", "cal BP")
   if(length(C14.lim) == 0)
     C14.lim <- extendrange(c(dat[,2]-dat[,3], dat[,2]+dat[,3]))
   if(length(C14.lab) == 0)
-	C14.lab <- expression(""^14*C~BP)
+    C14.lab <- expression(""^14*C~BP)
   
   plot(best.age-dat[,4], dat[,2], pch=20, bty="l", yaxs="i",
     xlab=cal.lab, xlim=cal.lim, ylab=C14.lab, ylim=C14.lim, col=dets.col) 
-	
+
   segments(best.age-dat[,4], dat[,2]-dat[,3], best.age-dat[,4], dat[,2]+dat[,3], col=dets.col, cex.axis=0.8, cex.lab=0.8)
   max.dR <- dR$x[which(dR$y==max(dR$y))]
-  points(best.age-dat[,4], dat[,2]-max.dR, col=adj.col, pch=20)
-  draw.ccurve(add=TRUE, BCAD=BCAD, cc1.col=cc.col)
+  points(best.age-dat[,4], dat[,2]+max.dR, col=adj.col, pch=20)
+  rice::draw.ccurve(add=TRUE, BCAD=BCAD, cc1.col=cc.col)
   if(length(name) > 0)
     legend(name.loc, legend=name, bty="n") 
-	
+
   coors <- par("usr")[3:4]
   yrs.pol <- cbind(c(min(yrs$x), yrs$x, max(yrs$x)), 
     coors[1] + (dist.height*(coors[2]-coors[1]) * c(0, yrs$y/max(yrs$y), 0)))
-	
+
   polygon(yrs.pol, col=post.col)	
 }

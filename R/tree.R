@@ -6,18 +6,19 @@
 #' @details The calculations are based on Bwigg (Christen and Litton 1995; Christen 2003). 
 #' In OxCal, this is called a D_Sequence (Bronk Ramsey et al. 2001).
 #' 
-#' Since only one parameter has to be estimated (the age of the earliest, innermost ring),
-#' a MCMC approach is not necessary nor recommended, and results are calculated analytically.
+#' Since only one parameter has to be estimated (either the age of the earliest, innermost ring, or the oldest, outermost ring),
+#' a MCMC approach is neither necessary or recommended, and results are calculated analytically.
 #'
 #' The tree files should be in plain-text and fields separated by commas, and the file's extension should be ".csv".
 #' The files should start with a line contain the following headers: "lab ID", "C-14 age", "error", "ring", "cc", separated by commas. Then each row should have the corresponding values, also separated by commas.
-#' Rings are counted from the inner ring (0 year old) outwards, so, forward in time. The file should start with the youngest rings, then work downward until reaching the oldest, bottommost dated rings. 
-#' cc should either be 1 (IntCal20; northern hemisphere terrestrial, 2 (Marine20, though we've never heard of marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve). 
+#' Rings are counted from the inner ring (0 year old) outwards, so, forward in time (or the other way round if theta0 is set to 'outer'). The file should start with the youngest rings, then work downward until reaching the oldest, bottommost dated rings.
+#' cc should either be 1 (IntCal20; northern hemisphere terrestrial, 2 (Marine20, though we've still to encounter marine trees), 3 (SHCal20; southern hemisphere) or 4 (custom curve).
 #'
 #' The default tree is called Ulandryk (Kuzman et al. 2004). As an alternative, a tree can be simulated (see \code{sim.tree()}).
 #'
 #' By default, the data are calibrated assuming a student-t distribution, which has wider tails than the normal distribution and deals well with scatter and outliers.
 #' @param name Name of the tree. The .csv file should be saved under a folder named exactly the same as \code{name}, and the folder should live under the \code{treedir} folder. The default is Ulandryk.
+#' @param theta0 By default, the age of the oldest, innermost ring is calculated (\code(theta="youngest")). Alternatively, this can be set to \code{theta0="oldest"}.
 #' @param tree.dir The directory where the folders of the individual trees live. Defaults to \code{tree.dir="trees"}.
 #' @param sep Separator for the fields in the .csv file. Defaults to a comma.
 #' @param normal Calculations can be done assuming that the measurements are normally distributed. By default this is set to FALSE and a student-t distribution is used (Christen and Perez 2009)
@@ -52,7 +53,7 @@
 #' Kuzmin Y, Slusarenko I, Hajdas I, Bonani G, Christen JA. 2004. The comparison of 14C wiggle-matching results for the 'floating' tree-ring chronology of the Ulandryk-4 Burial Ground (Altai Mountains, Siberia). Radiocarbon 46, 943–948.
 #'
 #' @export
-rings <- function(name="Ulandryk", tree.dir="trees", sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, ask=TRUE, age.steps=1, cutoff=1e-6, prob=.95, cc=1, postbomb=FALSE, BCAD=FALSE, times=3, talk=TRUE, draw=TRUE, ...) {
+rings <- function(name="Ulandryk", theta0="youngest", tree.dir="trees", sep=",", normal=FALSE, delta.R=0, delta.STD=0, t.a=3, t.b=4, ask=TRUE, age.steps=1, cutoff=1e-6, prob=.95, cc=1, postbomb=FALSE, BCAD=FALSE, times=3, talk=TRUE, draw=TRUE, ...) {
 
   tree.dir <- assign_dir(tree.dir, name, "tree.dir", ask=FALSE, talk)
   if(name %in% "Ulandryk") {
@@ -63,7 +64,8 @@ rings <- function(name="Ulandryk", tree.dir="trees", sep=",", normal=FALSE, delt
 
   # file sanity checks; ring is tree ring number
   OK <- TRUE
-  if(max(diff(dat[,4])) > 0) OK <- FALSE # we need decreasing ring positions
+  if(length(dat[,4]) > 1)
+    if(max(diff(dat[,4])) > 0) OK <- FALSE # we need decreasing ring positions
   if(min(dat[,5]) < 1 || max(dat[,5]) > 4) OK <- FALSE # only use C14 data
   if(ncol(dat) < 4) OK <- FALSE # only 4 or 5 columns
   if(!OK)
@@ -97,9 +99,13 @@ rings <- function(name="Ulandryk", tree.dir="trees", sep=",", normal=FALSE, delt
   sigma <- approx(cc[,1], cc[,3], yrseq)$y
   ccc <- cbind(yrseq, mu, sigma)
 
+  direction <- -1 # by default, we calculate from the outermost ring inwards
+  if(theta0=="oldest")
+    direction <- 1 # calculating from the oldest, innermost ring outwards
+
   probs <- rep(0, length(yrseq))
   for(i in 1:length(yrseq)) {
-    probs1 <- l.calib(yrseq[i]-dat[,4], dat[,2], dat[,3], cc=ccc, normal=normal, t.a=t.a, t.b=t.b)
+    probs1 <- l.calib(yrseq[i] + direction*dat[,4], dat[,2], dat[,3], cc=ccc, normal=normal, t.a=t.a, t.b=t.b)
     # with deltaR, energy becomes log(l.calib) + log(l.delta), with pars t0 & delta
     probs[i] <- prod(probs1)
   }
@@ -109,27 +115,33 @@ rings <- function(name="Ulandryk", tree.dir="trees", sep=",", normal=FALSE, delt
   colnames(out) <- c("yr", "prob")
   write.table(out, file.path(tree.dir, paste0(name, "_probs.txt")), sep="\t", row.names=FALSE, quote=FALSE)
   if(draw)
-    draw.rings(name=name, dat=dat, out=out, cc=cc, BCAD=BCAD, normal=normal, t.a=t.a, t.b=t.b, ...)
-  
+    draw.rings(name=name, dat=dat, theta0=theta0, out=out, cc=cc, BCAD=BCAD, normal=normal, t.a=t.a, t.b=t.b, ...)
+  usr2 <<- par("usr")
+
   # calculate offset between the (uncalibrated) dates and the calibration curve
   x0 <- out[which(out[,2] == max(out[,2])),1]
   x <- x0 - dat[,4]
   mu <- approx(cc[,1], cc[,2], x)$y
   sigma <- approx(cc[,1], cc[,3], x)$y
   offset <- sqrt((dat[,2] - mu)^2) / sqrt(dat[,3]^2 + sigma^2)
+
+  min_ids <- which(offset == min(offset))   # all positions with the minimum
+  max_ids <- which(offset == max(offset))   # all positions with the maximum  
   message("Offset (in standard deviations), mean ", round(mean(offset),2), ", from ",
-    round(min(offset),2), " (date ", which(offset==min(offset)), ") to ", 
-    round(max(offset),2), " (date ", which(offset==max(offset)), ")\n")
+    round(min(offset), 2), " (date", ifelse(length(min_ids)>1, "s ", " "), 
+	paste(min_ids, collapse = ", "), ") to ", 
+    round(max(offset), 2), " (date", ifelse(length(min_ids)>1, "s ", " "),
+	paste(max_ids, collapse = ", "), ")")
   
   # for each modelled age, find whether it fits any of the date's hpd ranges
   fits <- c()
   for(i in 1:nrow(dat)) {
     calib <- rice::caldist(dat[i,2], dat[i,3], dat[i,5])
-    this.hpd <- rbind(rice::hpd(calib, prob)) # not the one from rice
+    this.hpd <- rbind(rice::hpd(calib, prob))
     inside <- rep(0, nrow(out))
     for(j in 1:nrow(this.hpd)) { 
       rng <- range(this.hpd[j,1:2])
-      inside <- inside + ((out[,1] - dat[i,4] > rng[1]) * (out[,1] - dat[i,4] < rng[2]))
+      inside <- inside + ((out[,1] + direction * dat[i,4] > rng[1]) * (out[,1] + direction * dat[i,4] < rng[2]))
     }
     fits[i] <- 100*length(which(inside > 0)) / nrow(out) # ratio
   }
@@ -184,10 +196,11 @@ rings <- function(name="Ulandryk", tree.dir="trees", sep=",", normal=FALSE, delt
 #' @param postbomb Negative C-14 ages should be calibrated using a postbomb curve. This could be 1 (northern-hemisphere region 1), 2 (NH region 2), 3 (NH region 3), 4 (southern hemisphere regions 1-2), or 5 (SH region 3).
 #' @param BCAD The calendar scale of graphs and age output-files is in \code{cal BP} by default, but can be changed to BC/AD using \code{BCAD=TRUE}.
 #' @param talk Whether or not to provide feedback.
+#' @param show.progress Whether or not to inform the user about progress of the MCMC run.
 #' @param draw Whether or not to draw the graphs.
 #' @param ... Any additional plotting parameters. See draw.MCMCrings.
 #' @export
-MCMCrings <- function(name="Ulandryk", tree.dir="trees", delta.R=0, delta.STD=10, between=c(0, 15e3), its=5e4, x0=c(), xp0=c(), burnin=1000, internal.thinning=1, thinning=c(), sep=",", normal=FALSE, t.a=3, t.b=4, ask=TRUE, prob=.95, roundby=1, cc=1, postbomb=FALSE, BCAD=FALSE, talk=TRUE, draw=TRUE, ...) {
+MCMCrings <- function(name="Ulandryk", tree.dir="trees", delta.R=0, delta.STD=10, between=c(0, 15e3), its=5e4, x0=c(), xp0=c(), burnin=1000, internal.thinning=1, thinning=c(), sep=",", normal=FALSE, t.a=3, t.b=4, ask=TRUE, prob=.95, roundby=1, cc=1, postbomb=FALSE, BCAD=FALSE, talk=TRUE, show.progress=TRUE, draw=TRUE, ...) {
 
   tree.dir <- assign_dir(tree.dir, name, "tree.dir", ask=FALSE, talk)
   if(name %in% "Ulandryk") {
@@ -227,7 +240,7 @@ MCMCrings <- function(name="Ulandryk", tree.dir="trees", delta.R=0, delta.STD=10
   Energy <- function(x, Dets=dat, Cc=cc, Normal=normal, ta=t.a, tb=t.b) {
     cc.y <- approx(Cc[,1], Cc[,2], x[1]-dat[,4], rule = 2)$y
     cc.er <- approx(Cc[,1], Cc[,3], x[1]-dat[,4], rule = 2)$y
-    x.energy <- calib(Dets[,2]-x[2], Dets[,3], cc.y, cc.er, Normal, ta, tb)
+    x.energy <- calib(Dets[,2]+x[2], Dets[,3], cc.y, cc.er, Normal, ta, tb)
 
     # likelihood of the offset
     offset.energy <- dnorm(x[2], delta.R, delta.STD, log=TRUE)
@@ -241,7 +254,7 @@ MCMCrings <- function(name="Ulandryk", tree.dir="trees", delta.R=0, delta.STD=10
 
   tw <- c() # start with a clean slate
   tw <- Runtwalk(Tr=its, Obj=Energy, Supp=Support, dim=2, x0=x0, xp0=xp0,
-    thinning=internal.thinning, out.fl=c(), energy.fl=c(), show.progress=TRUE)
+    thinning=internal.thinning, out.fl=c(), energy.fl=c(), show.progress=show.progress)
 
   # post-run, remove any burn-in iterations
   output <- tw$output[-(1:burnin),]
@@ -263,16 +276,16 @@ MCMCrings <- function(name="Ulandryk", tree.dir="trees", delta.R=0, delta.STD=10
   
   if(draw)
     draw.MCMCrings(yrs=yrs, dR=dR, dat=dat, cc=cc, Us=Us, delta.R=delta.R, delta.STD=delta.STD, BCAD=BCAD, name=name, ...)
-  	
-  x.hpds <- rice::hpd(cbind(yrs$x, yrs$y), prob=prob) # there was a bug in rice
-  dR.hpds <- rice::hpd(cbind(dR$x, dR$y), prob=prob) # there was a bug in rice
+
+  x.hpds <- rice::hpd(cbind(yrs$x, yrs$y), prob=prob)
+  dR.hpds <- rice::hpd(cbind(dR$x, dR$y), prob=prob)
   if(talk) {
     message("Age estimate: ", round(x.hpds[1], roundby), " - ", round(x.hpds[2],roundby), 
       ifelse(BCAD, " BC/AD (", " cal BP ("), round(x.hpds[3], roundby), "%)")
      if(nrow(x.hpds)>1)
         for(i in 2:nrow(x.hpds))
           message(round(x.hpds[i,1], roundby), " - ", round(x.hpds[i,2],roundby), " (", round(x.hpds[i,3], roundby), "%)")
-	 
+
      message("deltaR: ", round(dR.hpds[2], roundby), " - ", round(dR.hpds[1],roundby), 
        " (", round(dR.hpds[3], roundby), "%)")
       if(nrow(dR.hpds)>1)

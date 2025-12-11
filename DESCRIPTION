@@ -1,7 +1,7 @@
 Package: coffee
 Type: Package
 Title: Chronological Ordering for Fossils and Environmental Events
-Version: 0.4.3
+Version: 0.5.0
 Authors@R: c(
   person("Maarten", "Blaauw", email="maarten.blaauw@qub.ac.uk", role=c("aut", "cre"), comment=c(ORCID="0000-0002-5680-1515")),
   person("Marco A.", "Aquino Lopez", email="aquino@cimat.mx", role=c("aut", "ctb"), comment=c(ORCID="0000-0002-5076-7205")),
@@ -16,4 +16,5 @@ NeedsCompilation: no
 Language: en-GB
 VignetteBuilder: knitr
 Suggests: knitr, rmarkdown, utf8
-Imports: data.table, rintcal (>= 1.1.1), rice (>= 0.5.0)
+Imports: data.table, rintcal (>= 1.2.1), rice (>= 1.2.0)
+

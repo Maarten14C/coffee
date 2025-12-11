@@ -33,7 +33,7 @@ Simfbeta <- function(at)
 
 
 
-########## h function for the "walk" kernel 
+########## h2 function for the "walk" kernel 
 Simh2 <- function( dim, pphi, aw, x, xp) {
   u <- runif(dim)
   phi <- (runif(dim) < pphi)
@@ -44,7 +44,7 @@ Simh2 <- function( dim, pphi, aw, x, xp) {
 
 
 
-########## h function for the "blow" kernel 
+########## h3 function for the "blow" kernel 
 Simh3 <- function( dim, pphi, x, xp) {
   phi <- (runif(dim) < pphi)
   sigma <- max(phi*abs(xp - x))
@@ -64,7 +64,7 @@ G3U <- function( nphi, phi, h, x, xp) {
 
 
 
-########## h function for the "hop" kernel 
+########## h4 function for the "hop" kernel 
 Simh4 <- function( dim, pphi, x, xp) {
   phi <- (runif(dim) < pphi)
   sigma <- max(phi*abs(xp - x))/3
@@ -144,18 +144,19 @@ Runtwalk <- function(Tr, Obj, Supp, dat, dim = length(x0), x0=x0, xp0=xp0, at=6,
         setTxtProgressBar(pb, i)
     move <- OneMove(dim=dim, Obj=Obj, Supp=Supp, x, U, xp, Up, at=at, aw=aw, pphi=pphi, F1=F1, F2=F2, F3=F3, ...)
     # cat(move$A, "\n")
-	
-	# cat(x[1], " ", x[2], move$propU, "\n")
+
     if(runif(1) < move$A) { # proposed iteration accepted
+      # cat(" 1\n")
       tmp.recacc <- c(move$funh, move$nphi/dim)
       acc <- acc + move$nphi/dim
       U <- move$propU
       Up <- move$propUp
       x <- move$y
       xp <- move$yp
-    }  else # proposed iteration rejected
+    }  else {# proposed iteration rejected
          tmp.recacc <- c(move$funh, 0)
-
+         # cat(" 0\n")
+      }
     # sub-runs to reduce the amount of iterations to be stored
     if(i %% thinning == 0) { # then store the iteration
       if(write.MCMC) {  
@@ -356,7 +357,7 @@ OneMove <- function( dim, Obj, Supp, x, U, xp, Up, at=6, aw=1.5, pphi=min( dim, 
                     W2 <- G4U( nphi, phi, x,  y, xp)
                     A <- exp((U - propU) + (Up - propUp) +  (W1 - W2))
                   } else {
-                     propU <- NULL
+                      propU <- NULL
                       A <- 0  ## out of support, not accepted
                     }
                 }
@@ -364,7 +365,7 @@ OneMove <- function( dim, Obj, Supp, x, U, xp, Up, at=6, aw=1.5, pphi=min( dim, 
 
  if(is.nan(A) || is.na(A))  #### debugging line
     message("Rtwalk: ERROR in evaluating the objective.  Value returned by objective function:", propU)
-
+ # cat(x, y, yp, propU, propUp, A, funh) # outputs detail of iteration
   return(list( y=y, propU=propU, yp=yp, propUp=propUp, A=A, funh=funh, nphi=nphi))
 }
 

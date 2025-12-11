@@ -1,6 +1,10 @@
-# todo:
+# todo: add theta0="youngest" or "oldest" option to rings (draw.rings) and to the MCMC version as well.
 
-# make some cases to test before submitting any update to CRAN (e.g. with cc=0, postbomb, blocks, undated levels, ...)
+# currently the default (Ulandryk) gives the age of the oldest ring, but it should be of the youngest (or at least, be flexible enough to show either).
+
+# optionally write no info variable to the environment (save.info=FALSE)
+
+# make some cases to test before submitting any update to CRAN (e.g. with cc=0, postbomb, blocks, undated levels, ...), also testthat?
 
 # make it possible to write in the cc column gap_gamma instead of 13, etc. g, n, e, u
 
@@ -15,10 +19,6 @@
 # an animation of strat would be fun, with 0 burnin and a short run. Draw coloured dots of the simulated ages and how they move through the iterations. Leave shadows of previous dots?
 
 # preparing the rings function to facilitate animations would also be helpful
-
-# ensure that functions such as pMCtoC14 etc. are available immediately:
-# not loading rice now because it's only needed for hpd, which has a bug for distributions from short iterations
-# library(rice)
 
 ### some internal functions to write and read things
 

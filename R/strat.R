@@ -215,7 +215,7 @@ strat <- function(name="mystrat", strat.dir="strats", run=TRUE, its=5e4, burnin=
     return(-1 * sum(l.x, x.cc0, x.cc1, x.cc2, x.cc3, x.cc4))
   }
 
-  now <- BCADtocalBP(as.numeric(format(Sys.time(), "%Y"))) # ages can't go into the future
+  now <- rice::BCADtocalBP(as.numeric(format(Sys.time(), "%Y"))) # ages can't go into the future
 
   # if there are blocks, order the ages within them (even though they don't have to be)
   if(struc$has.blocks)
@@ -469,7 +469,7 @@ save.summaries <- function(dets=set$dets, dat=set$dat, struc=set$struc, output=s
   for(i in 1:nrow(dets)) {
     out <- output[,i]
     out <- out[!is.na(out)]
-    qu <- quantile(out, c((1-prob)/2, 1-(1-prob/2), 0.5))
+    qu <- quantile(out, c((1-prob)/2, 1-((1-prob)/2), 0.5))
     min95[i] <- qu[1]
     max95[i] <- qu[2]
     medians[i] <- qu[3]
